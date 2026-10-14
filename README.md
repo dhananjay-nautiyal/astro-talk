@@ -6,9 +6,9 @@ Connect with professional astrologers via chat, voice, and video calls.
 
 | Layer | Technology |
 |-------|-----------|
-| Backend | Spring Boot 3.2.5, Java 17 |
-| Frontend | React 19, Vite 8, Tailwind CSS 4 |
-| Database | PostgreSQL 15 |
+| Backend | Spring Boot 3.2.5, Java 21 |
+| Frontend | React 19, Vite 8, Tailwind CSS 4 (installable PWA) |
+| Database | MySQL 8 (compose) / H2 in-memory (dev profile) |
 | ORM | Spring Data JPA / Hibernate |
 | Security | Spring Security 6 + JWT |
 | Real-time | STOMP WebSocket + SockJS |
@@ -29,21 +29,45 @@ frontend/            React + Vite client (port 5173)
 ```bash
 cd astroTalk-backend
 
-# Option A: Development (H2 in-memory DB, no PostgreSQL needed)
+# Option A: Development (H2 in-memory DB, needs test/dummy props only for full boot)
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
-# Option B: Production (PostgreSQL required)
-# Ensure PostgreSQL has database 'astrotalk' created
+# Option B: Production (MySQL required + secrets, see Environment Variables)
 mvn spring-boot:run
+```
+
+### Docker Compose (MySQL + app)
+
+```bash
+cd astroTalk-backend
+cp .env.example .env   # fill in DB_PASS, DB_ROOT_PASS, JWT_SECRET, ...
+docker compose up --build
 ```
 
 ### Frontend
 
 ```bash
 cd frontend
+cp .env.example .env   # fill in VITE_GOOGLE_CLIENT_ID / VITE_RAZORPAY_KEY_ID
 npm install
 npm run dev
 ```
+
+The production build is an installable PWA (manifest + offline app shell):
+`npm run build` → deploy `dist/`. On mobile use “Add to Home Screen” / Install.
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DB_URL` | No (MySQL localhost default) | JDBC URL |
+| `DB_USER` / `DB_PASS` | Yes | Database credentials (no defaults) |
+| `JWT_SECRET` | Yes | Base64-encoded ≥32-byte signing key |
+| `JWT_ACCESS_EXPIRATION_MS` | No (900000) | Access token lifetime |
+| `JWT_REFRESH_EXPIRATION_MS` | No (604800000) | Refresh token lifetime |
+| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | Yes for payments | Razorpay credentials |
+| `GOOGLE_CLIENT_ID` | Yes for Google sign-in | Google OAuth client ID |
+| `ALLOWED_ORIGINS` | No | Comma-separated CORS/WS origins |
+
+Frontend (`frontend/.env.example`): `VITE_API_URL`, `VITE_GOOGLE_CLIENT_ID`, `VITE_RAZORPAY_KEY_ID`.
 
 - Backend: http://localhost:8080
 - Frontend: http://localhost:5173
@@ -132,12 +156,23 @@ npm run dev
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DB_URL` | `jdbc:postgresql://localhost:5432/astrotalk` | Database URL |
-| `DB_USER` | `postgres` | Database user |
-| `DB_PASS` | `postgres` | Database password |
-| `JWT_SECRET` | (embedded default) | JWT signing key |
-| `JWT_EXPIRATION` | `86400000` | JWT expiry (24h) |
-| `RAZORPAY_KEY_ID` | — | Razorpay key |
-| `RAZORPAY_KEY_SECRET` | — | Razorpay secret |
+Backend (`astroTalk-backend/.env.example` — copy to `.env`, never commit it):
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DB_URL` | No (MySQL localhost default) | JDBC URL |
+| `DB_USER` / `DB_PASS` | Yes | Database credentials (no defaults) |
+| `JWT_SECRET` | Yes | Base64-encoded ≥32-byte signing key |
+| `JWT_ACCESS_EXPIRATION_MS` | No (900000) | Access token lifetime |
+| `JWT_REFRESH_EXPIRATION_MS` | No (604800000) | Refresh token lifetime |
+| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | Yes for payments | Razorpay credentials |
+| `GOOGLE_CLIENT_ID` | Yes for Google sign-in | Google OAuth client ID |
+| `ALLOWED_ORIGINS` | No | Comma-separated CORS + WebSocket origins |
+
+Frontend (`frontend/.env.example`): `VITE_API_URL`, `VITE_GOOGLE_CLIENT_ID`, `VITE_RAZORPAY_KEY_ID`.
+Google/Razorpay features stay disabled with a clear message until configured.
+
+## CI
+
+`.github/workflows/ci.yml` runs on push to `main` and PRs: backend `mvn verify`
+(JDK 21) plus frontend `npm ci` → `lint` → `test` → `build` (Node 22).

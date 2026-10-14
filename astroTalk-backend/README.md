@@ -21,8 +21,8 @@ AstroTalk is an astrology consultation platform connecting users with profession
 | Layer | Technology |
 |-------|-----------|
 | Framework | Spring Boot 3.2.5 |
-| Language | Java 17 |
-| Database | PostgreSQL 15 |
+| Language | Java 21 |
+| Database | MySQL 8 (compose) / H2 in-memory (dev profile) |
 | ORM | Spring Data JPA / Hibernate |
 | Security | Spring Security 6 + JWT (jjwt 0.12.5) |
 | WebSocket | STOMP over WebSocket with SockJS |
@@ -33,9 +33,9 @@ AstroTalk is an astrology consultation platform connecting users with profession
 
 ## Prerequisites
 
-- Java 17 or later
+- Java 21
 - Maven 3.8+
-- PostgreSQL 15
+- MySQL 8 (production/compose; H2 is used for the `dev` profile and tests)
 - Docker & Docker Compose (optional)
 
 ## Setup
@@ -52,7 +52,8 @@ cp .env.example .env
 ### Run Locally
 
 ```bash
-# Ensure PostgreSQL is running with database 'astrotalk'
+# Ensure MySQL is running with database 'astrotalk'
+# (or export DB_URL/DB_USER/DB_PASS - all secrets are required, see below)
 mvn clean compile
 mvn spring-boot:run
 ```
@@ -64,10 +65,11 @@ Swagger UI: `http://localhost:8080/swagger-ui.html`
 ### Run with Docker
 
 ```bash
-docker-compose up -d
+cp .env.example .env   # fill in DB_PASS, DB_ROOT_PASS, JWT_SECRET, ...
+docker compose up --build
 ```
 
-This starts PostgreSQL, Redis, the app, and pgAdmin (port 5050).
+This starts MySQL 8 and the app (health-checked, port 8080).
 
 ## API Endpoints
 
@@ -166,17 +168,17 @@ This starts PostgreSQL, Redis, the app, and pgAdmin (port 5050).
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DB_URL` | `jdbc:postgresql://localhost:5432/astrotalk` | PostgreSQL JDBC URL |
-| `DB_USER` | `postgres` | Database username |
-| `DB_PASS` | `postgres` | Database password |
-| `JWT_SECRET` | (256-bit key) | JWT signing secret |
-| `JWT_EXPIRATION` | `86400000` | JWT expiry in ms (24h) |
-| `RAZORPAY_KEY_ID` | — | Razorpay API key |
-| `RAZORPAY_KEY_SECRET` | — | Razorpay API secret |
-| `REDIS_HOST` | `localhost` | Redis host |
-| `REDIS_PORT` | `6379` | Redis port |
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DB_URL` | No (MySQL localhost default) | MySQL JDBC URL |
+| `DB_USER` / `DB_PASS` | Yes | Database credentials (no defaults) |
+| `JWT_SECRET` | Yes | Base64-encoded ≥32-byte JWT signing secret |
+| `JWT_ACCESS_EXPIRATION_MS` | No (900000) | Access token lifetime |
+| `JWT_REFRESH_EXPIRATION_MS` | No (604800000) | Refresh token lifetime |
+| `RAZORPAY_KEY_ID` | Yes for payments | Razorpay API key |
+| `RAZORPAY_KEY_SECRET` | Yes for payments | Razorpay API secret |
+| `GOOGLE_CLIENT_ID` | Yes for Google sign-in | Google OAuth client ID |
+| `ALLOWED_ORIGINS` | No | Comma-separated CORS + WebSocket origins |
 
 ## Run Tests
 
