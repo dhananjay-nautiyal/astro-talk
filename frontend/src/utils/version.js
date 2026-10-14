@@ -1,6 +1,8 @@
-// Baked-in app version. Bump on every release (kept in sync with
-// package.json + Android versionName) so the update prompt can compare.
-export const APP_VERSION = '1.2.0'
+// Baked in at build time from package.json (see vite.config.js define).
+// Version bumps only touch package.json - this constant cannot drift.
+/* global __APP_VERSION__ */
+export const APP_VERSION =
+  typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1.2.0'
 
 export function parseVersion(tag) {
   return String(tag || '')
