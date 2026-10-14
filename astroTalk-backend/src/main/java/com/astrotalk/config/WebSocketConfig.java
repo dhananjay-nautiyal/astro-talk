@@ -1,6 +1,7 @@
 package com.astrotalk.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -19,6 +20,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtHandshakeInterceptor jwtHandshakeInterceptor;
 
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOrigins;
+
     /**
      * Configures the simple message broker with /topic and /queue destinations
      * and sets /app as the application destination prefix.
@@ -32,14 +36,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     /**
-     * Registers the /ws STOMP endpoint with SockJS fallback and allows all origin patterns.
+     * Registers the /ws STOMP endpoint with SockJS fallback. Allowed origins
+     * come from app.cors.allowed-origins so WS and HTTP share one list.
      *
      * @param registry the StompEndpointRegistry to register endpoints with
      */
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
+                .setAllowedOriginPatterns(allowedOrigins.split(","))
                 .withSockJS();
     }
 

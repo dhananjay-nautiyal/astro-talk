@@ -1,12 +1,16 @@
 package com.astrotalk.exception;
 
 import com.astrotalk.dto.ErrorResponse;
+import com.razorpay.RazorpayException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mail.MailException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -110,6 +114,30 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
         log.warn("Illegal argument: {}", ex.getMessage());
         return build(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage());
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ErrorResponse> handleJwt(JwtException ex) {
+        log.warn("Invalid or expired token");
+        return build(HttpStatus.UNAUTHORIZED, "Unauthorized", "Invalid or expired token. Please sign in again.");
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
+        log.warn("Data integrity violation: {}", ex.getMessage());
+        return build(HttpStatus.CONFLICT, "Conflict", "Operation conflicts with existing data.");
+    }
+
+    @ExceptionHandler(RazorpayException.class)
+    public ResponseEntity<ErrorResponse> handleRazorpay(RazorpayException ex) {
+        log.warn("Payment provider error: {}", ex.getMessage());
+        return build(HttpStatus.BAD_GATEWAY, "Payment Error", "Payment provider failed. Please try again later.");
+    }
+
+    @ExceptionHandler(MailException.class)
+    public ResponseEntity<ErrorResponse> handleMail(MailException ex) {
+        log.warn("Mail sending failed: {}", ex.getMessage());
+        return build(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", "Could not send email. Please try again later.");
     }
 
     @ExceptionHandler(RuntimeException.class)
