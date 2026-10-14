@@ -4,6 +4,7 @@ import SockJS from 'sockjs-client'
 import { useDispatch, useSelector } from 'react-redux'
 import { addMessage } from '../store/consultationSlice'
 import { addNotification } from '../store/notificationSlice'
+import { wsBaseUrl } from '../utils/env'
 
 const useWebSocket = (consultationId) => {
   const dispatch = useDispatch()
@@ -16,7 +17,7 @@ const useWebSocket = (consultationId) => {
     if (!token || !user) return
 
     const client = new Client({
-      webSocketFactory: () => new SockJS('/ws'),
+      webSocketFactory: () => new SockJS(wsBaseUrl),
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },

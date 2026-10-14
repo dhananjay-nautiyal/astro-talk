@@ -5,6 +5,7 @@ import SockJS from 'sockjs-client'
 import { useSelector, useDispatch } from 'react-redux'
 import { addMessage } from '../store/consultationSlice'
 import { addNotification } from '../store/notificationSlice'
+import { wsBaseUrl } from '../utils/env'
 import SimplePeer from 'simple-peer'
 
 const SocketContext = createContext(null)
@@ -51,7 +52,7 @@ export const SocketProvider = ({ children }) => {
     if (!token || !user) return
 
     const client = new Client({
-      webSocketFactory: () => new SockJS('/ws'),
+      webSocketFactory: () => new SockJS(wsBaseUrl),
       connectHeaders: { Authorization: `Bearer ${token}` },
       debug: () => {},
       reconnectDelay: 5000,
