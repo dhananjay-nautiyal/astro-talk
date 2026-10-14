@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
 import { lazy, Suspense } from 'react'
 import { Link } from 'react-router-dom'
+import { useIsInstalled } from '../../../hooks/useIsInstalled'
+import { appDownloadUrl } from '../../../utils/env'
 
 const ParticleBackground = lazy(() => import('./ParticleBackground'))
 const ZodiacWheel = lazy(() => import('./ZodiacWheel'))
@@ -40,6 +42,7 @@ const statChips = [
 ]
 
 export default function HeroSection() {
+  const installed = useIsInstalled()
   return (
     <section className="relative min-h-screen overflow-hidden bg-cosmic">
       <Suspense fallback={null}>
@@ -96,8 +99,11 @@ export default function HeroSection() {
               >
                 Start Free Consultation
               </Link>
+              {!installed && (
               <a
-                href="#download"
+                href={appDownloadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-8 py-3.5 text-base font-semibold text-white backdrop-blur-xl transition-all duration-300 hover:bg-white/10 hover:border-white/30"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -105,6 +111,7 @@ export default function HeroSection() {
                 </svg>
                 Download App
               </a>
+              )}
             </motion.div>
 
             <motion.div

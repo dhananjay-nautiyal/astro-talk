@@ -8,6 +8,8 @@ import AstrologerCard from '../../../features/astrologer/components/AstrologerCa
 import TickerBar from '../../../components/layout/TickerBar'
 import LoadingSpinner from '../../../components/common/LoadingSpinner'
 import { useLanguage } from '../../../context/LanguageContext'
+import { useIsInstalled } from '../../../hooks/useIsInstalled'
+import { appDownloadUrl } from '../../../utils/env'
 import LoginModal from '../../../components/layout/LoginModal'
 import HeroScene from '../components/HeroScene'
 
@@ -28,6 +30,7 @@ const astroSpecials = [
 
 const HomePage = () => {
   const { t, lang } = useLanguage()
+  const installed = useIsInstalled()
   const { isAuthenticated } = useSelector((state) => state.auth)
   const navigate = useNavigate()
   const [topAstrologers, setTopAstrologers] = useState([])
@@ -88,9 +91,11 @@ const HomePage = () => {
             <button onClick={handleFreeChat} className="btn-gold">
               {t.hero?.getFreeChat || 'Get Free Chat'}
             </button>
-            <button className="btn-ghost">
+            {!installed && (
+            <a className="btn-ghost" href={appDownloadUrl} target="_blank" rel="noopener noreferrer">
               {t.hero?.downloadApp || 'Download The App'}
-            </button>
+            </a>
+            )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.8rem', marginTop: '2.5rem' }}>
             <div style={{ display: 'flex' }}>

@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { FiSmartphone, FiCheck } from 'react-icons/fi'
-import { IoLogoApple } from 'react-icons/io5'
+import { useIsInstalled } from '../../../hooks/useIsInstalled'
+import { appDownloadUrl } from '../../../utils/env'
 
 const features = [
   'Instant 1-on-1 consultations',
@@ -28,6 +29,7 @@ const itemVariants = {
 }
 
 export default function MobileAppSection() {
+  const installed = useIsInstalled()
   const sectionRef = useRef(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
   const [tilt, setTilt] = useState({ x: 0, y: 0 })
@@ -110,21 +112,16 @@ export default function MobileAppSection() {
               variants={itemVariants}
               className="flex flex-wrap gap-4"
             >
+              {installed ? (
+                <p className="text-sm text-white/60">
+                  You are using the AstroTalk app — all features are already unlocked here.
+                </p>
+              ) : (
+              <>
               <a
-                href="#"
-                className="group inline-flex items-center gap-3 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 px-6 py-3.5 text-sm font-medium text-white transition-all duration-300 hover:border-gold/50 hover:bg-white/10 hover:shadow-[0_0_25px_-5px_rgba(212,175,55,0.25)]"
-              >
-                <IoLogoApple className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-                <div className="text-left">
-                  <span className="block text-[10px] leading-tight text-white/40">
-                    Download on the
-                  </span>
-                  <span className="block text-sm font-semibold">App Store</span>
-                </div>
-              </a>
-
-              <a
-                href="#"
+                href={appDownloadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group inline-flex items-center gap-3 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 px-6 py-3.5 text-sm font-medium text-white transition-all duration-300 hover:border-gold/50 hover:bg-white/10 hover:shadow-[0_0_25px_-5px_rgba(212,175,55,0.25)]"
               >
                 <FiSmartphone className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
@@ -132,9 +129,11 @@ export default function MobileAppSection() {
                   <span className="block text-[10px] leading-tight text-white/40">
                     Get it on
                   </span>
-                  <span className="block text-sm font-semibold">Google Play</span>
+                  <span className="block text-sm font-semibold">Android (APK)</span>
                 </div>
               </a>
+              </>
+              )}
             </motion.div>
           </motion.div>
 
