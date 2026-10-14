@@ -1,9 +1,10 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { store } from '../store'
 import { logout } from '../store/authSlice'
+import { apiBaseUrl } from '../utils/env'
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: apiBaseUrl,
   headers: {
     'Content-Type': 'application/json',
   },

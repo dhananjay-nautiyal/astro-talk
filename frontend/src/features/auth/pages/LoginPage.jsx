@@ -51,7 +51,13 @@ const LoginPage = () => {
     }
   }
 
+import { isGoogleConfigured } from '../../../utils/env'
+
   const handleGoogleLogin = () => {
+    if (!isGoogleConfigured) {
+      toast.error('Google sign-in is not configured yet. Please use email login.')
+      return
+    }
     toast.error('Google Sign-In failed. Please try again.')
   }
 

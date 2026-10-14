@@ -1,3 +1,5 @@
+import { razorpayKeyId, isRazorpayConfigured } from './env'
+
 export const loadRazorpayScript = () => {
   return new Promise((resolve, reject) => {
     if (window.Razorpay) {
@@ -14,9 +16,12 @@ export const loadRazorpayScript = () => {
 
 export const openRazorpayCheckout = async (order, onSuccess, onFailure) => {
   try {
+    if (!isRazorpayConfigured) {
+      throw new Error('Razorpay is not configured (VITE_RAZORPAY_KEY_ID). See frontend/.env.example.')
+    }
     await loadRazorpayScript()
     const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+      key: razorpayKeyId,
       amount: order.amount,
       currency: order.currency || 'INR',
       name: 'AstroTalk',

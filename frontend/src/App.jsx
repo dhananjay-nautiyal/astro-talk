@@ -12,6 +12,7 @@ import Sidebar from './components/layout/Sidebar'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 import RoleRoute from './components/layout/RoleRoute'
 import LoadingSpinner from './components/common/LoadingSpinner'
+import { googleClientId, isGoogleConfigured } from './utils/env'
 
 const LandingPage = lazy(() => import('./features/landing/pages/LandingPage'))
 const HomePage = lazy(() => import('./features/landing/pages/HomePage'))
@@ -35,7 +36,11 @@ const AdminUsersPage = lazy(() => import('./features/admin/pages/AdminUsersPage'
 const AdminAstrologersPage = lazy(() => import('./features/admin/pages/AdminAstrologersPage'))
 const AdminRevenuePage = lazy(() => import('./features/admin/pages/AdminRevenuePage'))
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your-google-client-id.apps.googleusercontent.com'
+const GOOGLE_CLIENT_ID = googleClientId
+
+if (!isGoogleConfigured) {
+  console.warn('[astro-talk] VITE_GOOGLE_CLIENT_ID is not set - Google sign-in is disabled until it is configured. See frontend/.env.example.')
+}
 
 const PublicLayout = () => (
   <div className="min-h-screen flex flex-col">
@@ -69,9 +74,8 @@ const ConsultationLayout = () => (
 )
 
 function App() {
-  return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <Provider store={store}>
+  const content = (
+    <Provider store={store}>
         <LanguageProvider>
           <SocketProvider>
           <BrowserRouter>
@@ -133,8 +137,10 @@ function App() {
           </SocketProvider>
         </LanguageProvider>
       </Provider>
-    </GoogleOAuthProvider>
   )
+  return isGoogleConfigured ? (
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>{content}</GoogleOAuthProvider>
+  ) : content
 }
 
 export default App
