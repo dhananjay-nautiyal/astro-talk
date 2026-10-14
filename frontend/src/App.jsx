@@ -13,6 +13,8 @@ import ProtectedRoute from './components/layout/ProtectedRoute'
 import RoleRoute from './components/layout/RoleRoute'
 import LoadingSpinner from './components/common/LoadingSpinner'
 import ErrorBoundary from './components/common/ErrorBoundary'
+import UpdatePrompt from './components/common/UpdatePrompt'
+import { useUpdateCheck } from './hooks/useUpdateCheck'
 import { googleClientId, isGoogleConfigured } from './utils/env'
 
 const LandingPage = lazy(() => import('./features/landing/pages/LandingPage'))
@@ -76,6 +78,7 @@ const ConsultationLayout = () => (
 )
 
 function App() {
+  const { update, dismiss, applyUpdate } = useUpdateCheck()
   const content = (
     <Provider store={store}>
         <LanguageProvider>
@@ -101,6 +104,14 @@ function App() {
             />
             <Suspense fallback={<LoadingSpinner className="py-20" size="lg" />}>
               <ErrorBoundary>
+              {update && (
+                <UpdatePrompt
+                  version={update.version}
+                  notes={update.notes}
+                  onUpdate={applyUpdate}
+                  onLater={dismiss}
+                />
+              )}
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route element={<PublicLayout />}>
