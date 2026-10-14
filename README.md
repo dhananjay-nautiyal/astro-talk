@@ -1,178 +1,179 @@
-# AstroTalk — Astrology Consultation Platform
+<p align="center">
+  <img src="frontend/public/icon-192.png" width="120" alt="AstroTalk app icon" />
+</p>
 
-Connect with professional astrologers via chat, voice, and video calls.
+<h1 align="center">AstroTalk</h1>
 
-## Tech Stack
+<p align="center"><b>Talk to expert astrologers over live chat, voice and video</b></p>
 
-| Layer | Technology |
-|-------|-----------|
-| Backend | Spring Boot 3.2.5, Java 21 |
-| Frontend | React 19, Vite 8, Tailwind CSS 4 (installable PWA) |
-| Database | MySQL 8 (compose) / H2 in-memory (dev profile) |
-| ORM | Spring Data JPA / Hibernate |
-| Security | Spring Security 6 + JWT |
-| Real-time | STOMP WebSocket + SockJS |
-| Payments | Razorpay |
-| API Docs | SpringDoc OpenAPI |
+<p align="center">
 
-## Project Structure
+[![Latest release](https://img.shields.io/github/v/release/dhani748/astro-talk?style=for-the-badge&labelColor=0d1117)](https://github.com/dhani748/astro-talk/releases)
+[![CI](https://img.shields.io/github/actions/workflow/status/dhani748/astro-talk/CI?style=for-the-badge&labelColor=0d1117)](https://github.com/dhani748/astro-talk/actions)
 
+</p>
+
+<p align="center">
+
+[**Download**](#download) · [**Features**](#features) · [**Quick Start**](#quick-start) · [**Releases**](https://github.com/dhani748/astro-talk/releases) · [**Disclaimer**](#disclaimer)
+
+</p>
+
+> [!IMPORTANT]
+> AstroTalk is an independent project. It is not affiliated with, endorsed by,
+> or connected to any astrology authority or app store. Payments resolve via
+> Razorpay — availability varies by region.
+
+---
+
+# Features
+
+| #### Consult & Pay - **Live chat** with read receipts and typing indicators. - **Voice/video calls** via WebRTC signaling over STOMP. - **Per-minute billing** with automatic low-balance cutoff. - **Wallet** with Razorpay top-ups and transaction history. - **Reviews** with astrologer ratings. - **Notifications** pushed live over WebSocket. | #### Experience & Platform - **Installable PWA** — add the web app to any phone home screen, offline shell. - **Web app** (Vite + React 19, Tailwind, Redux Toolkit). - **JWT auth** (15-min access + 7-day refresh), BCrypt, `USER` / `ASTROLOGER` / `ADMIN` roles. - **Admin dashboard** — users, astrologer verification, revenue, wallet tweaks. - **Spring Boot 3.2 API** — JPA/Hibernate, MySQL 8 (H2 dev mode), OpenAPI docs. - **CI** — backend verify + frontend lint/test/build on every push and PR. |
+| --- | --- |
+
+---
+
+# Download
+
+<p>
+
+[![Backend & Web](https://img.shields.io/badge/Backend_%26_Web-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://github.com/dhani748/astro-talk/releases/latest)
+
+</p>
+
+Grab the backend JAR and the installable web bundle from the
+[**Releases**](https://github.com/dhani748/astro-talk/releases/latest) page.
+
+| Artifact | File | Install |
+|----------|------|---------|
+| Backend | `astrotalk-backend-<version>.jar` | `java -jar` with env (see Quick Start) |
+| Web frontend (PWA) | `astrotalk-web-<version>.zip` | Unzip to any HTTPS static host, then “Add to Home Screen” |
+
+No release published yet? Build both locally:
+
+```bash
+mvn clean package --file astroTalk-backend/pom.xml
+cd frontend && VITE_API_URL=https://<backend-host> npm run build && cd ..
 ```
-astroTalk-backend/   Spring Boot REST API (port 8080)
-frontend/            React + Vite client (port 5173)
+
+## Publishing a release (maintainer)
+
+```bash
+# 1. Build backend + web
+mvn clean package --file astroTalk-backend/pom.xml
+cd frontend && VITE_API_URL=https://<backend-host> npm run build && cd ..
+# 2. Zip the web bundle
+cd frontend/dist && zip -r ../../astrotalk-web-1.0.0.zip . && cd ../..
+# 3. Publish everything to GitHub Releases
+#    (this also triggers the Maven publish workflow to GitHub Packages)
+gh release create v1.0.0 \
+  astroTalk-backend/target/astro-talk-backend-*.jar \
+  astrotalk-web-1.0.0.zip \
+  --title "v1.0.0" --notes "See README for install steps"
 ```
 
-## Quick Start
+---
 
-### Backend
+# Quick Start
+
+## Backend (zero-config dev, H2 in-memory)
 
 ```bash
 cd astroTalk-backend
-
-# Option A: Development (H2 in-memory DB, needs test/dummy props only for full boot)
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
-
-# Option B: Production (MySQL required + secrets, see Environment Variables)
-mvn spring-boot:run
 ```
 
-### Docker Compose (MySQL + app)
+API on `http://localhost:8080` ·
+Swagger at `http://localhost:8080/swagger-ui.html` ·
+H2 console at `http://localhost:8080/h2-console`.
+
+## Backend (MySQL, like prod)
 
 ```bash
 cd astroTalk-backend
 cp .env.example .env   # fill in DB_PASS, DB_ROOT_PASS, JWT_SECRET, ...
+export $(grep -v '^#' .env | xargs)
+mvn spring-boot:run
+```
+
+Full variable list in `astroTalk-backend/.env.example`. Secrets have no defaults —
+the app fails fast at startup when one is missing.
+
+## Backend Docker
+
+```bash
+cd astroTalk-backend
+cp .env.example .env   # fill in secrets
 docker compose up --build
 ```
 
-### Frontend
+Starts MySQL 8 (health-checked) + the app on `:8080`.
+
+## Web frontend
 
 ```bash
 cd frontend
-cp .env.example .env   # fill in VITE_GOOGLE_CLIENT_ID / VITE_RAZORPAY_KEY_ID
+cp .env.example .env   # VITE_GOOGLE_CLIENT_ID / VITE_RAZORPAY_KEY_ID
 npm install
-npm run dev
+npm run dev            # empty VITE_API_URL => proxies /api + /ws to :5173 target
+VITE_API_URL=https://<backend-host> npm run build   # production PWA in dist/
 ```
 
-The production build is an installable PWA (manifest + offline app shell):
-`npm run build` → deploy `dist/`. On mobile use “Add to Home Screen” / Install.
+| Script | Purpose |
+|--------|---------|
+| `npm run dev` | Dev server with backend proxy |
+| `npm run build` | Production PWA build |
+| `npm run preview` | Preview the production build |
+| `npm run lint` | ESLint (kept error-free) |
+| `npm run test` / `test:watch` | Vitest suite |
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DB_URL` | No (MySQL localhost default) | JDBC URL |
-| `DB_USER` / `DB_PASS` | Yes | Database credentials (no defaults) |
-| `JWT_SECRET` | Yes | Base64-encoded ≥32-byte signing key |
-| `JWT_ACCESS_EXPIRATION_MS` | No (900000) | Access token lifetime |
-| `JWT_REFRESH_EXPIRATION_MS` | No (604800000) | Refresh token lifetime |
-| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | Yes for payments | Razorpay credentials |
-| `GOOGLE_CLIENT_ID` | Yes for Google sign-in | Google OAuth client ID |
-| `ALLOWED_ORIGINS` | No | Comma-separated CORS/WS origins |
-
-Frontend (`frontend/.env.example`): `VITE_API_URL`, `VITE_GOOGLE_CLIENT_ID`, `VITE_RAZORPAY_KEY_ID`.
-
-- Backend: http://localhost:8080
-- Frontend: http://localhost:5173
-- Swagger UI: http://localhost:8080/swagger-ui.html
-- H2 Console (dev): http://localhost:8080/h2-console
+Google sign-in and Razorpay stay disabled with a clear message until their keys
+are configured.
 
 ---
 
-## API Endpoints
+# Project Structure
 
-### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Register a new user |
-| POST | `/api/auth/register/astrologer` | Register a new astrologer |
-| POST | `/api/auth/login` | Login and get JWT token |
+```
+├── astroTalk-backend/src/main/java/com/astrotalk/
+│   ├── controller/      # 12 REST controllers (auth, astrologer, consultation,
+│   │                      # chat + WS signaling, wallet, payment, review,
+│   │                      # notification, admin) + STOMP/SDP signaling
+│   ├── service/ + impl/ # business logic (auth incl. Google, billing scheduler)
+│   ├── entity/ + repo/  # 19 JPA entities + repositories
+│   ├── model/           # request/response models (single canonical package)
+│   ├── config/          # security, JWT, WS origins, Razorpay, OpenAPI
+│   └── exception/       # domain + JWT/payment/mail handlers
+├── frontend/src/
+│   ├── api/             # axios instance + per-domain wrappers
+│   ├── components/      # shared UI (common/*, layout/*)
+│   ├── context/         # Language + Socket (STOMP/WebRTC) providers
+│   ├── features/        # per-domain pages/components/store
+│   ├── hooks/           # useWebSocket, useWebRTC, useTheme
+│   ├── store/           # Redux Toolkit root
+│   └── utils/           # env flags, Razorpay checkout loader
+└── .github/workflows/   # CI (push/PR) + Maven publish (on release)
+```
 
-### Astrologers
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/astrologers` | Search/filter astrologers |
-| GET | `/api/astrologers/top` | Top 6 by rating |
-| GET | `/api/astrologers/{id}` | Get profile |
-| GET | `/api/astrologers/{id}/availability` | Check online status |
-| PUT | `/api/astrologers/profile` | Update own profile |
-| PUT | `/api/astrologers/status/toggle` | Toggle online/offline |
+| Component | Technology |
+|-----------|-----------|
+| Backend | Spring Boot 3.2, Java 21, MySQL 8 (H2 in dev) |
+| Web | Vite 8, React 19, React Router 7, Redux Toolkit, Tailwind 4 |
+| Real-time | STOMP + SockJS, SimplePeer WebRTC |
+| Auth | JWT (jjwt 0.12) + Spring Security, BCrypt |
+| Mobile story | Installable PWA (manifest, icons, offline shell) |
 
-### Consultations
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/consultations/start` | Start a consultation |
-| POST | `/api/consultations/end/{id}` | End + final billing |
-| GET | `/api/consultations/active` | Get active consultation |
-| GET | `/api/consultations/history` | Consultation history |
+---
 
-### Wallet & Payments
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/wallet/balance` | Get balance |
-| GET | `/api/wallet/transactions` | Transaction history |
-| POST | `/api/wallet/add` | Add money |
-| POST | `/api/payments/create-order` | Create Razorpay order |
-| POST | `/api/payments/verify` | Verify payment |
+# Disclaimer
 
-### Chat
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/chat/{id}/messages` | Message history |
-| POST | `/api/chat/{id}/read` | Mark messages as read |
-| GET | `/api/chat/{id}/unread-count` | Unread count |
+AstroTalk is a community consultation client. It hosts no astrological content
+itself and makes no claims about predictive accuracy. You are responsible for
+complying with your local laws and each payment provider's terms of use.
 
-### Reviews
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/reviews` | Submit a review |
-| GET | `/api/reviews/astrologer/{id}` | Astrologer reviews |
+---
 
-### Notifications
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/notifications` | Get notifications |
-| PUT | `/api/notifications/{id}/read` | Mark as read |
-| PUT | `/api/notifications/read-all` | Mark all as read |
+# License
 
-### Admin
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/admin/dashboard` | Dashboard stats |
-| GET | `/api/admin/users` | List users |
-| GET | `/api/admin/astrologers` | List astrologers |
-| PUT | `/api/admin/astrologers/{id}/verify` | Verify astrologer |
-| PUT | `/api/admin/astrologers/{id}/reject` | Reject astrologer |
-| GET | `/api/admin/revenue` | Revenue report |
-| POST | `/api/admin/wallet/adjust` | Adjust wallet |
-
-## WebSocket Topics
-
-| Topic | Purpose |
-|-------|---------|
-| `/ws` | STOMP endpoint (SockJS) |
-| `/topic/consultation/{id}` | Live chat messages |
-| `/topic/consultation/{id}/signal` | WebRTC signaling |
-| `/topic/consultation/{id}/typing` | Typing indicators |
-| `/topic/user/{id}/call` | Incoming call invites |
-| `/topic/user/{id}/notifications` | Push notifications |
-
-## Environment Variables
-
-Backend (`astroTalk-backend/.env.example` — copy to `.env`, never commit it):
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DB_URL` | No (MySQL localhost default) | JDBC URL |
-| `DB_USER` / `DB_PASS` | Yes | Database credentials (no defaults) |
-| `JWT_SECRET` | Yes | Base64-encoded ≥32-byte signing key |
-| `JWT_ACCESS_EXPIRATION_MS` | No (900000) | Access token lifetime |
-| `JWT_REFRESH_EXPIRATION_MS` | No (604800000) | Refresh token lifetime |
-| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | Yes for payments | Razorpay credentials |
-| `GOOGLE_CLIENT_ID` | Yes for Google sign-in | Google OAuth client ID |
-| `ALLOWED_ORIGINS` | No | Comma-separated CORS + WebSocket origins |
-
-Frontend (`frontend/.env.example`): `VITE_API_URL`, `VITE_GOOGLE_CLIENT_ID`, `VITE_RAZORPAY_KEY_ID`.
-Google/Razorpay features stay disabled with a clear message until configured.
-
-## CI
-
-`.github/workflows/ci.yml` runs on push to `main` and PRs: backend `mvn verify`
-(JDK 21) plus frontend `npm ci` → `lint` → `test` → `build` (Node 22).
+No license file is published yet — add one (e.g. MIT / GPL-3.0) to define
+reuse terms.
