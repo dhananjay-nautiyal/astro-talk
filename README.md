@@ -37,15 +37,19 @@
 
 <p>
 
+[![Download for Android](https://img.shields.io/badge/Download_for_Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/dhani748/astro-talk/releases/latest)
 [![Backend & Web](https://img.shields.io/badge/Backend_%26_Web-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://github.com/dhani748/astro-talk/releases/latest)
 
 </p>
 
-Grab the backend JAR and the installable web bundle from the
+Grab the APK, backend JAR and web bundle from the
 [**Releases**](https://github.com/dhani748/astro-talk/releases/latest) page.
+Sideloading the APK needs **Install unknown apps** allowed for the browser you
+download with (debug-signed — fine for testing, use a release key for stores).
 
 | Artifact | File | Install |
 |----------|------|---------|
+| Android app | `astrotalk-v1.0.0.apk` | Download → tap → install |
 | Backend | `astrotalk-backend-<version>.jar` | `java -jar` with env (see Quick Start) |
 | Web frontend (PWA) | `astrotalk-web-<version>.zip` | Unzip to any HTTPS static host, then “Add to Home Screen” |
 
@@ -64,11 +68,15 @@ mvn clean package --file astroTalk-backend/pom.xml
 cd frontend && VITE_API_URL=https://<backend-host> npm run build && cd ..
 # 2. Zip the web bundle
 cd frontend/dist && zip -r ../../astrotalk-web-1.0.0.zip . && cd ../..
-# 3. Publish everything to GitHub Releases
+# 3. Build the Android APK (needs ANDROID_HOME set, first run downloads the SDK)
+cd frontend && npx cap sync android && cd android && ./gradlew assembleDebug && cd ../..
+cp frontend/android/app/build/outputs/apk/debug/app-debug.apk astrotalk-v1.0.0.apk
+# 4. Publish everything to GitHub Releases
 #    (this also triggers the Maven publish workflow to GitHub Packages)
 gh release create v1.0.0 \
   astroTalk-backend/target/astro-talk-backend-*.jar \
   astrotalk-web-1.0.0.zip \
+  astrotalk-v1.0.0.apk \
   --title "v1.0.0" --notes "See README for install steps"
 ```
 
