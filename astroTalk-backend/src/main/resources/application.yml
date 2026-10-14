@@ -49,5 +49,7 @@ app:
   astrologer-share: 0.70
   low-balance-threshold: 10
 
+# Optional: enables Google sign-in (both the /api/auth/google endpoint and the
+# login-page button). Leave unset to run without it.
 google:
-  client-id: ${GOOGLE_CLIENT_ID}
+  client-id: ${GOOGLE_CLIENT_ID:}

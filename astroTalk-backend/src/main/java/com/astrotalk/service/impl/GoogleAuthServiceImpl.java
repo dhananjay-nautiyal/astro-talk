@@ -37,6 +37,9 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
 
     @Override
     public AuthResponseModel authenticate(GoogleLoginRequestModel request) {
+        if (googleClientId == null || googleClientId.isBlank()) {
+            throw new IllegalArgumentException("Google sign-in is not configured on this server.");
+        }
         try {
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
                     new NetHttpTransport(), GsonFactory.getDefaultInstance())

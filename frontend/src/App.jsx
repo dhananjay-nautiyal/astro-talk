@@ -1,7 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { Provider } from 'react-redux'
-import { GoogleOAuthProvider } from '@react-oauth/google'
 import { Toaster } from 'react-hot-toast'
 import { store } from './store'
 import { LanguageProvider } from './context/LanguageContext'
@@ -15,7 +14,6 @@ import LoadingSpinner from './components/common/LoadingSpinner'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import UpdatePrompt from './components/common/UpdatePrompt'
 import { useUpdateCheck } from './hooks/useUpdateCheck'
-import { googleClientId, isGoogleConfigured } from './utils/env'
 
 const LandingPage = lazy(() => import('./features/landing/pages/LandingPage'))
 const HomePage = lazy(() => import('./features/landing/pages/HomePage'))
@@ -39,12 +37,6 @@ const AdminUsersPage = lazy(() => import('./features/admin/pages/AdminUsersPage'
 const AdminAstrologersPage = lazy(() => import('./features/admin/pages/AdminAstrologersPage'))
 const AdminRevenuePage = lazy(() => import('./features/admin/pages/AdminRevenuePage'))
 const NotFoundPage = lazy(() => import('./features/landing/pages/NotFoundPage'))
-
-const GOOGLE_CLIENT_ID = googleClientId
-
-if (!isGoogleConfigured) {
-  console.warn('[astro-talk] VITE_GOOGLE_CLIENT_ID is not set - Google sign-in is disabled until it is configured. See frontend/.env.example.')
-}
 
 const PublicLayout = () => (
   <div className="min-h-screen flex flex-col">
@@ -157,9 +149,7 @@ function App() {
         </LanguageProvider>
       </Provider>
   )
-  return isGoogleConfigured ? (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>{content}</GoogleOAuthProvider>
-  ) : content
+  return content
 }
 
 export default App
