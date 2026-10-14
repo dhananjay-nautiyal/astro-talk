@@ -5,6 +5,7 @@ import { loginSuccess } from '../store/authSlice'
 import { registerUser, registerAstrologer } from '../../../api/authAPI'
 import { FiStar, FiEye, FiEyeOff, FiUser, FiStar as FiStarIcon } from 'react-icons/fi'
 import toast from 'react-hot-toast'
+import { normalizeEmail, isValidEmail } from '../../../utils/validation'
 
 const roleOptions = [
   { value: 'USER', label: "I'm a User", desc: 'Browse astrologers, book sessions, get guidance', icon: FiUser },
@@ -26,6 +27,11 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const email = normalizeEmail(form.email)
+    if (!isValidEmail(email)) {
+      toast.error('Please enter a valid email address (e.g. name@example.com).')
+      return
+    }
     if (form.password !== form.confirmPassword) {
       toast.error('Passwords do not match')
       return
@@ -35,7 +41,7 @@ const RegisterPage = () => {
       if (role === 'ASTROLOGER') {
         const res = await registerAstrologer({
           name: form.name,
-          email: form.email,
+          email,
           password: form.password,
           phone: form.phone,
           bio: form.bio,
@@ -48,7 +54,7 @@ const RegisterPage = () => {
       } else {
         const res = await registerUser({
           name: form.name,
-          email: form.email,
+          email,
           password: form.password,
           phone: form.phone,
         })

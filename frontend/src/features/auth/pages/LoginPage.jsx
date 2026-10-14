@@ -5,6 +5,7 @@ import { loginStart, loginSuccess, loginFailure } from '../store/authSlice'
 import { loginUser } from '../../../api/authAPI'
 import { FiStar, FiEye, FiEyeOff } from 'react-icons/fi'
 import toast from 'react-hot-toast'
+import { normalizeEmail, isValidEmail } from '../../../utils/validation'
 import { isGoogleConfigured } from '../../../utils/env'
 
 const getErrorMessage = (err) => {
@@ -37,10 +38,15 @@ const LoginPage = () => {
       toast.error('Email and password are required.')
       return
     }
+    const normalizedEmail = normalizeEmail(email)
+    if (!isValidEmail(normalizedEmail)) {
+      toast.error('Please enter a valid email address.')
+      return
+    }
 
     dispatch(loginStart())
     try {
-      const { data } = await loginUser({ email, password })
+      const { data } = await loginUser({ email: normalizedEmail, password })
       dispatch(loginSuccess(data))
       toast.success(`Welcome back, ${data.name}!`)
       const roleDashboard = data.role === 'ASTROLOGER' ? '/astrologer/dashboard' : data.role === 'ADMIN' ? '/admin/dashboard' : from

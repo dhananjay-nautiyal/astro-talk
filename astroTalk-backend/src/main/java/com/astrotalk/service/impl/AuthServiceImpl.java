@@ -40,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponseModel registerUser(RegisterRequestModel request) {
+        request.setEmail(request.getEmail().trim().toLowerCase());
         log.info("Registering user with email: {}", request.getEmail());
 
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -79,6 +80,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponseModel registerAstrologer(RegisterAstrologerRequestModel request) {
+        request.setEmail(request.getEmail().trim().toLowerCase());
         log.info("Registering astrologer with email: {}", request.getEmail());
 
         if (astrologerRepository.existsByEmail(request.getEmail())) {
@@ -118,6 +120,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponseModel login(LoginRequestModel request) {
+        request.setEmail(request.getEmail().trim().toLowerCase());
         log.info("Login attempt for email: {}", request.getEmail());
 
         User user = userRepository.findByEmail(request.getEmail()).orElse(null);
