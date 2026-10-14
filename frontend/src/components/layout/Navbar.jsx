@@ -67,7 +67,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="bg-cosmic-2/80 backdrop-blur-xl sticky top-0 z-40 border-b border-white/5">
+      <nav className="glass sticky top-0 z-40 border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-[70px]">
           <Link to="/" className="nav-brand" style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--gold)', letterSpacing: '0.12em' }}>
             AstroTalk
