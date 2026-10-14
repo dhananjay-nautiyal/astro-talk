@@ -1,30 +1,18 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: postgres:15
+  mysql:
+    image: mysql:8.0
     container_name: astrotalk-db
     environment:
-      POSTGRES_DB: astrotalk
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      MYSQL_DATABASE: astrotalk
+      MYSQL_USER: ${DB_USER:-astrotalk}
+      MYSQL_PASSWORD: ${DB_PASS:?Set DB_PASS in your environment or .env file}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS:?Set DB_ROOT_PASS in your environment or .env file}
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    container_name: astrotalk-redis
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,30 +23,19 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/astrotalk
-      DB_USER: postgres
-      DB_PASS: postgres
-      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970337336763979244226452948404D635166546A576E5A7234753778214125442A47}
-      JWT_EXPIRATION: 86400000
+      DB_URL: jdbc:mysql://mysql:3306/astrotalk?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: ${DB_USER:-astrotalk}
+      DB_PASS: ${DB_PASS:?Set DB_PASS in your environment or .env file}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your environment or .env file}
+      JWT_ACCESS_EXPIRATION_MS: ${JWT_ACCESS_EXPIRATION_MS:-900000}
+      JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS:-604800000}
       RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
       RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
-      REDIS_HOST: redis
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173}
     depends_on:
-      postgres:
+      mysql:
         condition: service_healthy
-      redis:
-        condition: service_healthy
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: astrotalk-pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@astrotalk.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5050:80"
-    depends_on:
-      - postgres
 
 volumes:
-  postgres_data:
+  mysql_data:
