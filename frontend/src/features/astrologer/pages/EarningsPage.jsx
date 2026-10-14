@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast'
 import { useState, useEffect } from 'react'
 import { getTransactions } from '../../../api/walletAPI'
 import { FiDollarSign, FiArrowUpRight } from 'react-icons/fi'
@@ -19,7 +20,7 @@ const EarningsPage = () => {
         setEarnings(data.content || data || [])
         setTotalPages(data.totalPages || 1)
       })
-      .catch(() => {})
+      .catch(() => toast.error('Failed to load earnings.'))
       .finally(() => setLoading(false))
   }, [page])
 

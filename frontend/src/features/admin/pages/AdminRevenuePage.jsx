@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast'
 import { useState, useEffect } from 'react'
 import { getRevenueReport } from '../../../api/adminAPI'
 import { FiDollarSign, FiCalendar } from 'react-icons/fi'
@@ -17,7 +18,7 @@ const AdminRevenuePage = () => {
         setRevenue(data.chart || data || [])
         setTotal(data.total || 0)
       })
-      .catch(() => {})
+      .catch(() => toast.error('Failed to load revenue data.'))
       .finally(() => setLoading(false))
   }, [range])
 

@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast'
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
@@ -19,8 +20,8 @@ const DashboardPage = () => {
 
   useEffect(() => {
     Promise.all([
-      getWalletBalance().then(({ data }) => dispatch(setBalance(data.balance))).catch(() => {}),
-      getConsultationHistory({ page: 0, size: 5 }).then(({ data }) => setHistory(data.content || data || [])).catch(() => {}),
+      getWalletBalance().then(({ data }) => dispatch(setBalance(data.balance))).catch(() => toast.error('Failed to load wallet balance.')),
+      getConsultationHistory({ page: 0, size: 5 }).then(({ data }) => setHistory(data.content || data || [])).catch(() => toast.error('Failed to load consultation history.')),
     ]).finally(() => setLoading(false))
   }, [dispatch])
 

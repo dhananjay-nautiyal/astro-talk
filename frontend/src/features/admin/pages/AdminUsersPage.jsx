@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast'
 import { useState, useEffect } from 'react'
 import { getUsers } from '../../../api/adminAPI'
 import Pagination from '../../../components/common/Pagination'
@@ -19,7 +20,7 @@ const AdminUsersPage = () => {
         setUsers(data.content || data || [])
         setTotalPages(data.totalPages || 1)
       })
-      .catch(() => {})
+      .catch(() => toast.error('Failed to load users.'))
       .finally(() => setLoading(false))
   }, [page, search])
 

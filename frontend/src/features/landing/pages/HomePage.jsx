@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast'
 import { useState, useEffect, useRef, Suspense } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
@@ -37,7 +38,7 @@ const HomePage = () => {
   useEffect(() => {
     getTopAstrologers()
       .then(({ data }) => setTopAstrologers(data.content || data || []))
-      .catch(() => {})
+      .catch(() => toast.error('Failed to load astrologers.'))
       .finally(() => setLoading(false))
   }, [])
 

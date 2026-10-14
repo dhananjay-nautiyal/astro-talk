@@ -16,7 +16,7 @@ const AstrologerDashboardPage = () => {
   useEffect(() => {
     getAdminDashboard()
       .then(({ data }) => setStats(data))
-      .catch(() => {})
+      .catch(() => toast.error('Failed to load dashboard.'))
       .finally(() => setLoading(false))
   }, [])
 

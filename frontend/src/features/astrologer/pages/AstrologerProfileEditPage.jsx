@@ -28,7 +28,7 @@ const AstrologerProfileEditPage = () => {
           profilePhoto: data.profilePhoto || '',
         })
       })
-      .catch(() => {})
+      .catch(() => toast.error('Failed to load profile.'))
       .finally(() => setLoading(false))
   }, [user?.id])
 

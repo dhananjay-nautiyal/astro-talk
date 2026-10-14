@@ -27,7 +27,7 @@ const ProfilePage = () => {
           profilePicture: data.profilePicture || '',
         })
       })
-      .catch(() => {})
+      .catch(() => toast.error('Failed to load profile.'))
       .finally(() => setLoading(false))
   }, [])
 

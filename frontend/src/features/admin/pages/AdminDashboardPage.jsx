@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast'
 import { useState, useEffect } from 'react'
 import { getAdminDashboard } from '../../../api/adminAPI'
 import { FiUsers, FiStar, FiDollarSign, FiTrendingUp } from 'react-icons/fi'
@@ -11,7 +12,7 @@ const AdminDashboardPage = () => {
   useEffect(() => {
     getAdminDashboard()
       .then(({ data }) => setStats(data))
-      .catch(() => {})
+      .catch(() => toast.error('Failed to load dashboard.'))
       .finally(() => setLoading(false))
   }, [])
 

@@ -12,6 +12,7 @@ import Sidebar from './components/layout/Sidebar'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 import RoleRoute from './components/layout/RoleRoute'
 import LoadingSpinner from './components/common/LoadingSpinner'
+import ErrorBoundary from './components/common/ErrorBoundary'
 import { googleClientId, isGoogleConfigured } from './utils/env'
 
 const LandingPage = lazy(() => import('./features/landing/pages/LandingPage'))
@@ -35,6 +36,7 @@ const AdminDashboardPage = lazy(() => import('./features/admin/pages/AdminDashbo
 const AdminUsersPage = lazy(() => import('./features/admin/pages/AdminUsersPage'))
 const AdminAstrologersPage = lazy(() => import('./features/admin/pages/AdminAstrologersPage'))
 const AdminRevenuePage = lazy(() => import('./features/admin/pages/AdminRevenuePage'))
+const NotFoundPage = lazy(() => import('./features/landing/pages/NotFoundPage'))
 
 const GOOGLE_CLIENT_ID = googleClientId
 
@@ -98,6 +100,7 @@ function App() {
               }}
             />
             <Suspense fallback={<LoadingSpinner className="py-20" size="lg" />}>
+              <ErrorBoundary>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route element={<PublicLayout />}>
@@ -131,7 +134,12 @@ function App() {
                   <Route path="/admin/astrologers" element={<AdminAstrologersPage />} />
                   <Route path="/admin/revenue" element={<AdminRevenuePage />} />
                 </Route>
+
+                <Route path="*" element={<PublicLayout />}>
+                  <Route path="*" element={<NotFoundPage />} />
+                </Route>
               </Routes>
+              </ErrorBoundary>
             </Suspense>
           </BrowserRouter>
           </SocketProvider>
