@@ -170,8 +170,10 @@ This starts MySQL 8 and the app (health-checked, port 8080).
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DB_URL` | No (MySQL localhost default) | MySQL JDBC URL |
+| `DB_URL` | No (MySQL localhost default) | JDBC URL (`?sslmode=require` for Render Postgres) |
 | `DB_USER` / `DB_PASS` | Yes | Database credentials (no defaults) |
+| `DB_DRIVER` | No (MySQL driver) | `org.postgresql.Driver` for Postgres |
+| `DB_DIALECT` | No (MySQL) | `org.hibernate.dialect.PostgreSQLDialect` for Postgres |
 | `JWT_SECRET` | Yes | Base64-encoded ≥32-byte JWT signing secret |
 | `JWT_ACCESS_EXPIRATION_MS` | No (900000) | Access token lifetime |
 | `JWT_REFRESH_EXPIRATION_MS` | No (604800000) | Refresh token lifetime |
