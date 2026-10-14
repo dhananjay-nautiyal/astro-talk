@@ -1,7 +1,6 @@
 import toast from 'react-hot-toast'
 import { useState, useEffect } from 'react'
 import { getRevenueReport } from '../../../api/adminAPI'
-import { FiDollarSign, FiCalendar } from 'react-icons/fi'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import LoadingSpinner from '../../../components/common/LoadingSpinner'
 
@@ -11,8 +10,12 @@ const AdminRevenuePage = () => {
   const [range, setRange] = useState('weekly')
   const [total, setTotal] = useState(0)
 
-  useEffect(() => {
+  const selectRange = (r) => {
     setLoading(true)
+    setRange(r)
+  }
+
+  useEffect(() => {
     getRevenueReport({ range })
       .then(({ data }) => {
         setRevenue(data.chart || data || [])
@@ -37,7 +40,7 @@ const AdminRevenuePage = () => {
 
       <div className="flex gap-2 mb-6">
         {['daily', 'weekly', 'monthly', 'yearly'].map((r) => (
-          <button key={r} onClick={() => setRange(r)}
+          <button key={r} onClick={() => selectRange(r)}
             className={`px-4 py-2 rounded-xl text-sm font-medium capitalize transition-colors ${
               range === r ? 'bg-gold text-cosmic' : 'bg-white/5 text-muted hover:bg-white/10'
             }`}>

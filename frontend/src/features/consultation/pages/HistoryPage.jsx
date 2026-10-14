@@ -15,23 +15,16 @@ const HistoryPage = () => {
   const [filter, setFilter] = useState('all')
 
   useEffect(() => {
-    fetchHistory()
+    const params = { page: page - 1, size: 10 }
+    if (filter !== 'all') params.type = filter
+    getConsultationHistory(params)
+      .then(({ data }) => {
+        setHistory(data.content || data || [])
+        setTotalPages(data.totalPages || 1)
+      })
+      .catch((err) => console.error('Failed to load history:', err))
+      .finally(() => setLoading(false))
   }, [page, filter])
-
-  const fetchHistory = async () => {
-    setLoading(true)
-    try {
-      const params = { page: page - 1, size: 10 }
-      if (filter !== 'all') params.type = filter
-      const { data } = await getConsultationHistory(params)
-      setHistory(data.content || data || [])
-      setTotalPages(data.totalPages || 1)
-    } catch (err) {
-      console.error('Failed to load history:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const typeIcons = { chat: FiMessageCircle, call: FiPhone, video: FiVideo }
 
@@ -43,7 +36,7 @@ const HistoryPage = () => {
         {['all', 'chat', 'call', 'video'].map((t) => (
           <button
             key={t}
-            onClick={() => { setFilter(t); setPage(1) }}
+            onClick={() => { setLoading(true); setFilter(t); setPage(1) }}
             className={`px-4 py-2 rounded-xl text-sm font-medium capitalize transition-colors ${
               filter === t
                 ? 'bg-gold text-cosmic'
@@ -87,7 +80,7 @@ const HistoryPage = () => {
           })}
         </div>
       )}
-      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={(p) => { setLoading(true); setPage(p) }} />
     </div>
   )
 }

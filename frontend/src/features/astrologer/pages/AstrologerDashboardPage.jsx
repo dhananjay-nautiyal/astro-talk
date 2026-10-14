@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
-import { toggleAstrologerStatus, updateAstrologerProfile } from '../../../api/astrologerAPI'
+import { toggleAstrologerStatus } from '../../../api/astrologerAPI'
 import { getAdminDashboard } from '../../../api/adminAPI'
 import { FiDollarSign, FiClock, FiStar, FiUsers, FiToggleLeft, FiToggleRight } from 'react-icons/fi'
 import LoadingSpinner from '../../../components/common/LoadingSpinner'

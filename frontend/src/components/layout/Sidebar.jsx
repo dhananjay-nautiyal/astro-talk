@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { FiHome, FiUser, FiClock, FiCreditCard, FiStar, FiBarChart2, FiUsers, FiShield, FiDollarSign, FiEdit3 } from 'react-icons/fi'
+import { FiHome, FiUser, FiClock, FiCreditCard, FiStar, FiBarChart2, FiUsers, FiDollarSign, FiEdit3 } from 'react-icons/fi'
 
 const userLinks = [
   { to: '/dashboard', icon: FiHome, label: 'Dashboard' },

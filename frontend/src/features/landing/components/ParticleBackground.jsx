@@ -1,6 +1,7 @@
 import { useRef, useMemo } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { mulberry32 } from './random'
 
 const COLORS = [
   new THREE.Color('#FFD700'),
@@ -15,22 +16,23 @@ function ParticleField() {
   const groupRef = useRef()
 
   const [positions, sizes, colors] = useMemo(() => {
+    const rand = mulberry32(0xC0FFEE)
     const pos = new Float32Array(3000 * 3)
     const siz = new Float32Array(3000)
     const col = new Float32Array(3000 * 3)
 
     for (let i = 0; i < 3000; i++) {
-      const radius = Math.cbrt(Math.random()) * 10
-      const theta = Math.random() * Math.PI * 2
-      const phi = Math.acos(2 * Math.random() - 1)
+      const radius = Math.cbrt(rand()) * 10
+      const theta = rand() * Math.PI * 2
+      const phi = Math.acos(2 * rand() - 1)
 
       pos[i * 3] = radius * Math.sin(phi) * Math.cos(theta)
       pos[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta)
       pos[i * 3 + 2] = radius * Math.cos(phi)
 
-      siz[i] = 0.02 + Math.random() * 0.08
+      siz[i] = 0.02 + rand() * 0.08
 
-      const c = COLORS[Math.floor(Math.random() * COLORS.length)]
+      const c = COLORS[Math.floor(rand() * COLORS.length)]
       col[i * 3] = c.r
       col[i * 3 + 1] = c.g
       col[i * 3 + 2] = c.b

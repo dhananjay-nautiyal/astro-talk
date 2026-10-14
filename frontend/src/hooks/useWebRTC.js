@@ -6,6 +6,26 @@ const useWebRTC = (sendMessage) => {
   const [remoteStream, setRemoteStream] = useState(null)
   const [callStatus, setCallStatus] = useState('idle')
   const peerRef = useRef(null)
+  // Ref mirror of the media stream so stable callbacks and the unmount
+  // cleanup always stop the current tracks (no stale-closure surprises).
+  const localStreamRef = useRef(null)
+
+  const cleanup = useCallback(() => {
+    if (peerRef.current) {
+      try {
+        peerRef.current.destroy()
+      } catch {
+        // peer already destroyed - safe to ignore
+      }
+      peerRef.current = null
+    }
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((track) => track.stop())
+      localStreamRef.current = null
+    }
+    setLocalStream(null)
+    setRemoteStream(null)
+  }, [])
 
   const getLocalStream = useCallback(async () => {
     try {
@@ -13,6 +33,7 @@ const useWebRTC = (sendMessage) => {
         video: true,
         audio: true,
       })
+      localStreamRef.current = stream
       setLocalStream(stream)
       return stream
     } catch (err) {
@@ -56,10 +77,10 @@ const useWebRTC = (sendMessage) => {
       })
 
       peerRef.current = peer
-    } catch (err) {
+    } catch {
       setCallStatus('error')
     }
-  }, [getLocalStream, sendMessage])
+  }, [getLocalStream, sendMessage, cleanup])
 
   const answerCall = useCallback(async (signal) => {
     try {
@@ -96,38 +117,21 @@ const useWebRTC = (sendMessage) => {
 
       peer.signal(signal)
       peerRef.current = peer
-    } catch (err) {
+    } catch {
       setCallStatus('error')
     }
-  }, [getLocalStream, sendMessage])
+  }, [getLocalStream, sendMessage, cleanup])
 
   const endCall = useCallback(() => {
-    if (peerRef.current) {
-      peerRef.current.destroy()
-    }
     cleanup()
     setCallStatus('ended')
-  }, [])
-
-  const cleanup = useCallback(() => {
-    if (localStream) {
-      localStream.getTracks().forEach((track) => track.stop())
-    }
-    setLocalStream(null)
-    setRemoteStream(null)
-    peerRef.current = null
-  }, [localStream])
+  }, [cleanup])
 
   useEffect(() => {
     return () => {
-      if (peerRef.current) {
-        peerRef.current.destroy()
-      }
-      if (localStream) {
-        localStream.getTracks().forEach((track) => track.stop())
-      }
+      cleanup()
     }
-  }, [])
+  }, [cleanup])
 
   return { localStream, remoteStream, callStatus, initiateCall, answerCall, endCall }
 }

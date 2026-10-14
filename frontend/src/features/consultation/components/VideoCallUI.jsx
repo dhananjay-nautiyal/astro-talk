@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react'
-import { FiMic, FiMicOff, FiVideo, FiVideoOff, FiPhoneOff, FiMaximize2 } from 'react-icons/fi'
+import { FiMic, FiMicOff, FiVideo, FiVideoOff, FiPhoneOff } from 'react-icons/fi'
 import CallTimer from './CallTimer'
 
 const VideoCallUI = ({ localStream, remoteStream, onEndCall, muted, cameraOff, onToggleMute, onToggleCamera }) => {

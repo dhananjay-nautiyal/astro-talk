@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- context modules intentionally export the provider plus its hook */
 import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
@@ -25,6 +26,26 @@ export const SocketProvider = ({ children }) => {
   const [localStream, setLocalStream] = useState(null)
   const [remoteStream, setRemoteStream] = useState(null)
   const [callStatus, setCallStatus] = useState('idle')
+  // Ref mirror of the media stream so stable callbacks and the unmount
+  // cleanup always stop the current tracks (no stale-closure surprises).
+  const localStreamRef = useRef(null)
+
+  const cleanup = useCallback(() => {
+    if (peerRef.current) {
+      try {
+        peerRef.current.destroy()
+      } catch {
+        // peer already destroyed - safe to ignore
+      }
+      peerRef.current = null
+    }
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((track) => track.stop())
+      localStreamRef.current = null
+    }
+    setLocalStream(null)
+    setRemoteStream(null)
+  }, [])
 
   useEffect(() => {
     if (!token || !user) return
@@ -68,7 +89,7 @@ export const SocketProvider = ({ children }) => {
     subscriptions.current.push(typingSub)
 
     const signalSub = client.subscribe(`/topic/consultation/${consultationId}/signal`, (message) => {
-      const { type, signal, consultationType } = JSON.parse(message.body)
+      const { type, signal } = JSON.parse(message.body)
       if (type === 'offer' && peerRef.current && !peerRef.current.initiator) {
         peerRef.current.signal(signal)
       } else if (type === 'answer' && peerRef.current?.initiator) {
@@ -113,6 +134,7 @@ export const SocketProvider = ({ children }) => {
   const getLocalStream = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      localStreamRef.current = stream
       setLocalStream(stream)
       return stream
     } catch (err) {
@@ -159,7 +181,7 @@ export const SocketProvider = ({ children }) => {
     } catch {
       setCallStatus('error')
     }
-  }, [getLocalStream, sendMessage])
+  }, [getLocalStream, sendMessage, cleanup])
 
   const answerCall = useCallback(async (signal) => {
     try {
@@ -199,31 +221,18 @@ export const SocketProvider = ({ children }) => {
     } catch {
       setCallStatus('error')
     }
-  }, [getLocalStream, sendMessage])
+  }, [getLocalStream, sendMessage, cleanup])
 
   const endCall = useCallback(() => {
-    if (peerRef.current) {
-      peerRef.current.destroy()
-    }
     cleanup()
     setCallStatus('ended')
-  }, [])
-
-  const cleanup = useCallback(() => {
-    if (localStream) {
-      localStream.getTracks().forEach((track) => track.stop())
-    }
-    setLocalStream(null)
-    setRemoteStream(null)
-    peerRef.current = null
-  }, [localStream])
+  }, [cleanup])
 
   useEffect(() => {
     return () => {
-      if (peerRef.current) peerRef.current.destroy()
-      if (localStream) localStream.getTracks().forEach((track) => track.stop())
+      cleanup()
     }
-  }, [])
+  }, [cleanup])
 
   return (
     <SocketContext.Provider value={{

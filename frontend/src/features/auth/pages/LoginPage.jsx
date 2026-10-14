@@ -5,6 +5,7 @@ import { loginStart, loginSuccess, loginFailure } from '../store/authSlice'
 import { loginUser } from '../../../api/authAPI'
 import { FiStar, FiEye, FiEyeOff } from 'react-icons/fi'
 import toast from 'react-hot-toast'
+import { isGoogleConfigured } from '../../../utils/env'
 
 const getErrorMessage = (err) => {
   if (!err.response) return 'Something went wrong. Please try again later.'
@@ -50,8 +51,6 @@ const LoginPage = () => {
       toast.error(msg)
     }
   }
-
-import { isGoogleConfigured } from '../../../utils/env'
 
   const handleGoogleLogin = () => {
     if (!isGoogleConfigured) {

@@ -35,7 +35,7 @@ const useWebSocket = (consultationId) => {
 
           const typingSub = client.subscribe(
             `/topic/consultation/${consultationId}/typing`,
-            (message) => {
+            () => {
               // typing indicator handled via local state in component
             }
           )
@@ -43,7 +43,7 @@ const useWebSocket = (consultationId) => {
 
           const signalSub = client.subscribe(
             `/topic/consultation/${consultationId}/signal`,
-            (message) => {
+            () => {
               // WebRTC signals handled in useWebRTC hook
             }
           )
@@ -61,10 +61,9 @@ const useWebSocket = (consultationId) => {
 
         const callSub = client.subscribe(
           `/topic/user/${user.id}/call`,
-          (message) => {
+          () => {
             // incoming call handled separately
-          }
-        )
+          }        )
         subscriptions.current.push(callSub)
       },
       onDisconnect: () => {},

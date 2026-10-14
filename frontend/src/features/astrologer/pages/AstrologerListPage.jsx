@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { setAstrologers, setLoading, setPage } from '../store/astrologerSlice'
 import { getAstrologers } from '../../../api/astrologerAPI'
@@ -14,12 +14,7 @@ const AstrologerListPage = () => {
   const { list, filters, pagination, loading } = useSelector((state) => state.astrologer)
   const [showFilters, setShowFilters] = useState(false)
 
-  useEffect(() => {
-    fetchAstrologers()
-  }, [filters, pagination.page])
-
-  const fetchAstrologers = async () => {
-    dispatch(setLoading(true))
+  const fetchAstrologers = useCallback(async () => {
     try {
       const params = {
         page: pagination.page - 1,
@@ -36,7 +31,11 @@ const AstrologerListPage = () => {
     } finally {
       dispatch(setLoading(false))
     }
-  }
+  }, [dispatch, filters, pagination.page])
+
+  useEffect(() => {
+    fetchAstrologers()
+  }, [fetchAstrologers])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 page-transition">
@@ -67,7 +66,7 @@ const AstrologerListPage = () => {
                   <AstrologerCard key={astro.id} astrologer={astro} />
                 ))}
               </div>
-              <Pagination currentPage={pagination.page} totalPages={pagination.totalPages} onPageChange={(p) => dispatch(setPage(p))} />
+              <Pagination currentPage={pagination.page} totalPages={pagination.totalPages} onPageChange={(p) => { dispatch(setLoading(true)); dispatch(setPage(p)) }} />
             </>
           )}
         </div>

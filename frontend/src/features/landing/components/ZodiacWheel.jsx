@@ -2,10 +2,10 @@ import { useRef, useMemo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Float, Text, MeshDistortMaterial, Environment, Sparkles, Stars } from '@react-three/drei'
 import * as THREE from 'three'
+import { mulberry32 } from './random'
 
 const GOLD = '#D4AF37'
 const GOLD_LIGHT = '#F0D68A'
-const GOLD_DARK = '#B8860B'
 const PURPLE = '#7C3AED'
 const BLUE = '#3B82F6'
 
@@ -112,17 +112,17 @@ function OrbitingParticles() {
   const count = 600
   const ref = useRef()
   const [positions, colors] = useMemo(() => {
+    const rand = mulberry32(0xA570)
     const pos = new Float32Array(count * 3)
     const cols = new Float32Array(count * 3)
-    const color = new THREE.Color()
     for (let i = 0; i < count; i++) {
-      const theta = Math.random() * Math.PI * 2
-      const phi = Math.acos(2 * Math.random() - 1)
-      const r = 0.5 + Math.random() * 4.5
+      const theta = rand() * Math.PI * 2
+      const phi = Math.acos(2 * rand() - 1)
+      const r = 0.5 + rand() * 4.5
       pos[i * 3] = r * Math.sin(phi) * Math.cos(theta)
       pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) * 0.3
       pos[i * 3 + 2] = r * Math.cos(phi)
-      const c = new THREE.Color().setHSL(0.1 + Math.random() * 0.05, 0.8, 0.5 + Math.random() * 0.4)
+      const c = new THREE.Color().setHSL(0.1 + rand() * 0.05, 0.8, 0.5 + rand() * 0.4)
       cols[i * 3] = c.r
       cols[i * 3 + 1] = c.g
       cols[i * 3 + 2] = c.b
@@ -151,12 +151,13 @@ function OrbitingParticles() {
 function LightRays() {
   const ref = useRef()
   const positions = useMemo(() => {
+    const rand = mulberry32(0xBE17)
     const pos = new Float32Array(200 * 3)
     for (let i = 0; i < 200; i++) {
-      const angle = Math.random() * Math.PI * 2
-      const r = 0.5 + Math.random() * 1.5
+      const angle = rand() * Math.PI * 2
+      const r = 0.5 + rand() * 1.5
       pos[i * 3] = Math.cos(angle) * r
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 0.5
+      pos[i * 3 + 1] = (rand() - 0.5) * 0.5
       pos[i * 3 + 2] = Math.sin(angle) * r
     }
     return pos

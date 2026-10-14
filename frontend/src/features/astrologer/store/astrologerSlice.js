@@ -17,7 +17,7 @@ const initialState = {
     totalPages: 1,
     totalElements: 0,
   },
-  loading: false,
+  loading: true,
   error: null,
 }
 

@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { setFilters, resetFilters } from '../store/astrologerSlice'
-import { FiX, FiSearch } from 'react-icons/fi'
+import { setFilters, setLoading, resetFilters } from '../store/astrologerSlice'
+import { FiSearch } from 'react-icons/fi'
 
 const specializations = ['Vedic', 'Numerology', 'Palmistry', 'Tarot', 'Vastu', 'Astrology', 'Face Reading']
 const languages = ['Hindi', 'English', 'Tamil', 'Telugu', 'Bengali', 'Marathi', 'Gujarati']
@@ -11,6 +11,7 @@ const AstrologerFilters = memo(() => {
   const filters = useSelector((state) => state.astrologer.filters)
 
   const handleFilterChange = (key, value) => {
+    dispatch(setLoading(true))
     dispatch(setFilters({ [key]: value }))
   }
 
@@ -19,7 +20,7 @@ const AstrologerFilters = memo(() => {
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-light">Filters</h3>
         <button
-          onClick={() => dispatch(resetFilters())}
+          onClick={() => { dispatch(setLoading(true)); dispatch(resetFilters()) }}
           className="text-xs text-gold hover:underline"
         >
           Reset All

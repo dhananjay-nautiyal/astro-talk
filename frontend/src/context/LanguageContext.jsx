@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- context modules intentionally export the provider plus its hook */
 import { createContext, useContext, useState, useCallback } from 'react'
 import translations from '../translations'
 

@@ -20,7 +20,7 @@ const itemVariants = {
   visible: { y: 0, opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } },
 }
 
-function TiltCard({ service, index }) {
+function TiltCard({ service }) {
   const cardRef = useRef(null)
   const [rotate, setRotate] = useState({ x: 0, y: 0 })
 
@@ -121,8 +121,8 @@ export default function FeaturesSection() {
           animate={isInView ? 'visible' : 'hidden'}
           className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
         >
-          {services.map((service, i) => (
-            <TiltCard key={service.title} service={service} index={i} />
+          {services.map((service) => (
+            <TiltCard key={service.title} service={service} />
           ))}
         </motion.div>
       </div>

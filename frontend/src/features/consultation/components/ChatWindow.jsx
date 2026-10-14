@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { FiSend, FiSmile } from 'react-icons/fi'
 import MessageBubble from './MessageBubble'
-import CallTimer from './CallTimer'
 
-const ChatWindow = ({ messages = [], onSendMessage, onTyping, consultationId, isTyping }) => {
+const ChatWindow = ({ messages = [], onSendMessage, onTyping, isTyping }) => {
   const [message, setMessage] = useState('')
   const messagesEndRef = useRef(null)
 

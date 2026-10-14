@@ -1,6 +1,7 @@
 import { useRef, useMemo } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Float, MeshDistortMaterial } from '@react-three/drei'
+import { mulberry32 } from './random'
 
 function CelestialSphere() {
   const sphereRef = useRef()
@@ -53,8 +54,9 @@ function CelestialSphere() {
 
 function Stars({ count = 300 }) {
   const positions = useMemo(() => {
+    const rand = mulberry32(0x5EED)
     const pos = new Float32Array(count * 3)
-    for (let i = 0; i < count * 3; i++) pos[i] = (Math.random() - 0.5) * 40
+    for (let i = 0; i < count * 3; i++) pos[i] = (rand() - 0.5) * 40
     return pos
   }, [count])
 
@@ -81,7 +83,6 @@ function Stars({ count = 300 }) {
 
 function OrbitingRing() {
   const ref = useRef()
-  const dotsRef = useRef([])
   const count = 12
 
   const positions = useMemo(() => {

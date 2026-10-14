@@ -21,7 +21,6 @@ const ConsultationPage = () => {
   const dispatch = useDispatch()
   const { user } = useSelector((state) => state.auth)
   const { balance } = useSelector((state) => state.wallet)
-  const { status } = useSelector((state) => state.consultation)
   const [messages, setMessages] = useState([])
   const [consultation, setConsultation] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -33,7 +32,7 @@ const ConsultationPage = () => {
   const [speakerOn, setSpeakerOn] = useState(false)
   const typingTimeout = useRef(null)
 
-  const { subscribeToConsultation, unsubscribeAll, sendMessage, sendTyping, localStream, remoteStream, callStatus, initiateCall, endCall } = useSocket()
+  const { subscribeToConsultation, unsubscribeAll, sendMessage, sendTyping, localStream, remoteStream, initiateCall, endCall } = useSocket()
 
   useEffect(() => {
     subscribeToConsultation(id)
@@ -55,7 +54,7 @@ const ConsultationPage = () => {
 
         const messagesRes = await getChatHistory(id)
         setMessages(messagesRes.data || [])
-      } catch (err) {
+      } catch {
         toast.error('Failed to load consultation')
         navigate('/dashboard')
       } finally {
@@ -90,7 +89,7 @@ const ConsultationPage = () => {
       dispatch(updateConsultationStatus('ended'))
       toast.success('Consultation ended')
       navigate('/dashboard')
-    } catch (err) {
+    } catch {
       toast.error('Failed to end consultation')
     }
   }

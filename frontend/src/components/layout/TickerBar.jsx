@@ -1,5 +1,4 @@
 import { FiUsers, FiClock, FiGlobe } from 'react-icons/fi'
-import { useLanguage } from '../../context/LanguageContext'
 
 const items = [
   { icon: FiUsers, value: '120.2M+', label: 'Customers' },
@@ -8,8 +7,6 @@ const items = [
 ]
 
 export default function TickerBar() {
-  const { lang } = useLanguage()
-
   const line = items
     .map((item) => `${item.value} ${item.label}`)
     .join(' <span class="sep">✦</span> ')

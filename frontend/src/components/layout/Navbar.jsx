@@ -58,6 +58,7 @@ export default function Navbar() {
     try {
       await logoutUser()
     } catch {
+      // logout endpoint is best-effort; local logout below always runs
     }
     dispatch(logout())
     toast.success('Logged out successfully')

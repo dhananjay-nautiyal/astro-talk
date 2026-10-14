@@ -30,7 +30,7 @@ const RazorpayButton = ({ amount, onSuccess }) => {
             dispatch(addTransaction(data.transaction))
             toast.success('Money added successfully!')
             onSuccess?.()
-          } catch (err) {
+          } catch {
             toast.error('Payment verification failed')
           }
         },
@@ -38,7 +38,7 @@ const RazorpayButton = ({ amount, onSuccess }) => {
           toast.error(err.message || 'Payment cancelled')
         }
       )
-    } catch (err) {
+    } catch {
       toast.error('Failed to create order')
     } finally {
       setLoading(false)

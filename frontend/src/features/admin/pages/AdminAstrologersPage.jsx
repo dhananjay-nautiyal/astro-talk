@@ -10,18 +10,12 @@ const AdminAstrologersPage = () => {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(null)
 
-  useEffect(() => { fetchPending() }, [])
-
-  const fetchPending = async () => {
-    try {
-      const { data } = await getPendingAstrologers()
-      setAstrologers(data.content || data || [])
-    } catch {
-      toast.error('Failed to load')
-    } finally {
-      setLoading(false)
-    }
-  }
+  useEffect(() => {
+    getPendingAstrologers()
+      .then(({ data }) => setAstrologers(data.content || data || []))
+      .catch(() => toast.error('Failed to load'))
+      .finally(() => setLoading(false))
+  }, [])
 
   const handleVerify = async (id, status) => {
     setActionLoading(id)

@@ -5,7 +5,6 @@ import { setBalance, setTransactions } from '../store/walletSlice'
 import WalletCard from '../components/WalletCard'
 import TransactionRow from '../components/TransactionRow'
 import RazorpayButton from '../components/RazorpayButton'
-import Modal from '../../../components/common/Modal'
 import LoadingSpinner from '../../../components/common/LoadingSpinner'
 import EmptyState from '../../../components/common/EmptyState'
 import Pagination from '../../../components/common/Pagination'
@@ -15,7 +14,6 @@ const WalletPage = () => {
   const dispatch = useDispatch()
   const { balance, transactions } = useSelector((state) => state.wallet)
   const [loading, setLoading] = useState(true)
-  const [showAddModal, setShowAddModal] = useState(false)
   const [amount, setAmount] = useState(100)
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
@@ -36,7 +34,25 @@ const WalletPage = () => {
     }
   }, [dispatch, page])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([getWalletBalance(), getTransactions({ page, size: 10 })])
+      .then(([balanceRes, txRes]) => {
+        if (cancelled) return
+        dispatch(setBalance(balanceRes.data.balance))
+        dispatch(setTransactions(txRes.data.content || txRes.data || []))
+        setTotalPages(txRes.data.totalPages || 1)
+      })
+      .catch((err) => {
+        if (!cancelled) console.error('Failed to load wallet data:', err)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [dispatch, page])
 
   if (loading) return <LoadingSpinner className="py-20" size="lg" />
 
@@ -46,9 +62,9 @@ const WalletPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="lg:col-span-1">
-          <WalletCard balance={balance} onAddMoney={() => setShowAddModal(true)} />
+          <WalletCard balance={balance} onAddMoney={() => document.getElementById('quick-add')?.scrollIntoView({ behavior: 'smooth' })} />
         </div>
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2" id="quick-add">
           <div className="bg-cosmic-2 rounded-2xl border border-white/5">
             <div className="flex items-center justify-between p-6 border-b border-white/5">
               <h2 className="font-semibold text-light">Quick Add</h2>
@@ -77,7 +93,7 @@ const WalletPage = () => {
                   min={10}
                   className="flex-1 px-4 py-2.5 rounded-xl border border-white/10 bg-cosmic-3 text-light text-sm focus:outline-none focus:ring-2 focus:ring-gold/30"
                 />
-                <RazorpayButton amount={amount} onSuccess={() => { setShowAddModal(false); fetchData() }} />
+                <RazorpayButton amount={amount} onSuccess={() => { fetchData() }} />
               </div>
             </div>
           </div>

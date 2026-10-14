@@ -13,8 +13,12 @@ const AdminUsersPage = () => {
   const [totalPages, setTotalPages] = useState(1)
   const [search, setSearch] = useState('')
 
-  useEffect(() => {
+  const changePage = (p) => {
     setLoading(true)
+    setPage(p)
+  }
+
+  useEffect(() => {
     getUsers({ page: page - 1, size: 10, search })
       .then(({ data }) => {
         setUsers(data.content || data || [])
@@ -32,7 +36,7 @@ const AdminUsersPage = () => {
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
           <input
             type="text" placeholder="Search users..."
-            value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+            value={search} onChange={(e) => { setLoading(true); setSearch(e.target.value); setPage(1) }}
             className="pl-10 pr-4 py-2 rounded-xl border border-white/10 bg-cosmic-3 text-light text-sm focus:outline-none focus:ring-2 focus:ring-gold/30 w-64"
           />
         </div>
@@ -81,7 +85,7 @@ const AdminUsersPage = () => {
           </table>
         </div>
       )}
-      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={changePage} />
     </div>
   )
 }
