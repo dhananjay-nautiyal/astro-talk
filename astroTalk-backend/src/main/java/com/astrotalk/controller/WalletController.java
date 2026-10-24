@@ -4,13 +4,11 @@ import com.astrotalk.constant.WebResource;
 import com.astrotalk.entity.User;
 import com.astrotalk.entity.WalletTransaction;
 import com.astrotalk.exception.ResourceNotFoundException;
-import com.astrotalk.model.AddMoneyRequestModel;
 import com.astrotalk.model.WalletResponseModel;
 import com.astrotalk.repository.UserRepository;
 import com.astrotalk.service.WalletService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,8 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -69,21 +65,11 @@ public class WalletController {
         return ResponseEntity.ok(walletService.getTransactionHistory(user.getId(), PageRequest.of(page, size)));
     }
 
-    /**
-     * POST /wallet/add - Credits the authenticated user's wallet with the specified amount.
-     *
-     * @param authentication the current authenticated user
-     * @param request        the amount to add
-     * @return updated {@link WalletResponse}
-     */
-    @PostMapping(WebResource.ADD)
-    @Operation(summary = "Add money to wallet", description = "Credits the wallet with specified amount")
-    public ResponseEntity<WalletResponseModel> addMoney(
-            Authentication authentication,
-            @Valid @RequestBody AddMoneyRequestModel request) {
-        User user = getCurrentUser(authentication);
-        return ResponseEntity.ok(walletService.addBalance(user.getId(), request.getAmount(), "Wallet top-up"));
-    }
+    // POST /wallet/add was intentionally removed. Direct self-service wallet
+    // crediting allowed any authenticated user to grant themselves unlimited
+    // funds with no payment verification. Wallet top-ups must now go through the
+    // Razorpay flow: POST /payments/create-order followed by POST /payments/verify,
+    // which validates the payment signature and credits the verified amount.
 
     private User getCurrentUser(Authentication authentication) {
         String email = authentication.getName();
