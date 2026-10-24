@@ -5,6 +5,7 @@ import com.astrotalk.model.StartConsultationRequestModel;
 import com.astrotalk.entity.*;
 import com.astrotalk.exception.InsufficientBalanceException;
 import com.astrotalk.exception.ResourceNotFoundException;
+import com.astrotalk.exception.UnauthorizedAccessException;
 import com.astrotalk.repository.AstrologerRepository;
 import com.astrotalk.repository.ConsultationRepository;
 import com.astrotalk.repository.UserRepository;
@@ -142,6 +143,21 @@ public class ConsultationServiceImpl implements ConsultationService {
         Consultation consultation = consultationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Consultation", id));
         return toConsultationResponse(consultation);
+    }
+
+    private Consultation loadConsultationForOwnership(Long id) {
+        return consultationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Consultation", id));
+    }
+
+    @Override
+    public void assertParticipant(Long consultationId, String email) {
+        Consultation c = loadConsultationForOwnership(consultationId);
+        boolean isUser = c.getUser() != null && email.equals(c.getUser().getEmail());
+        boolean isAstrologer = c.getAstrologer() != null && email.equals(c.getAstrologer().getEmail());
+        if (!isUser && !isAstrologer) {
+            throw new UnauthorizedAccessException("You are not a participant of this consultation");
+        }
     }
 
     private ConsultationResponseModel toConsultationResponse(Consultation c) {
