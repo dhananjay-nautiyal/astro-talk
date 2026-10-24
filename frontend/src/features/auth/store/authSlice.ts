@@ -16,11 +16,28 @@ interface AuthState {
   error: string | null
 }
 
+const STORAGE_KEY = 'token'
+const USER_KEY = 'authUser'
+const ROLE_KEY = 'authRole'
+
+function loadStoredUser(): User | null {
+  try {
+    const raw = localStorage.getItem(USER_KEY)
+    return raw ? (JSON.parse(raw) as User) : null
+  } catch {
+    return null
+  }
+}
+
+const storedToken = localStorage.getItem(STORAGE_KEY)
+const storedUser = loadStoredUser()
+const storedRole = localStorage.getItem(ROLE_KEY)
+
 const initialState: AuthState = {
-  user: null,
-  token: localStorage.getItem('token'),
-  isAuthenticated: !!localStorage.getItem('token'),
-  role: null,
+  user: storedUser,
+  token: storedToken,
+  isAuthenticated: !!storedToken,
+  role: storedRole,
   loading: false,
   error: null,
 }
@@ -52,7 +69,9 @@ const authSlice = createSlice({
       }
       state.token = action.payload.token
       state.role = action.payload.role
-      localStorage.setItem('token', action.payload.token)
+      localStorage.setItem(STORAGE_KEY, action.payload.token)
+      localStorage.setItem(USER_KEY, JSON.stringify(state.user))
+      localStorage.setItem(ROLE_KEY, action.payload.role)
     },
     loginFailure: (state, action: PayloadAction<string>) => {
       state.loading = false
@@ -63,7 +82,9 @@ const authSlice = createSlice({
       state.token = null
       state.isAuthenticated = false
       state.role = null
-      localStorage.removeItem('token')
+      localStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem(USER_KEY)
+      localStorage.removeItem(ROLE_KEY)
     },
     updateUser: (state, action: PayloadAction<Partial<User>>) => {
       state.user = state.user ? { ...state.user, ...action.payload } : null
