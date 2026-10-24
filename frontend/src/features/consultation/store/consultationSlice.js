@@ -4,6 +4,7 @@ const initialState = {
   activeConsultation: null,
   status: 'idle',
   history: [],
+  messages: [],
   loading: false,
   error: null,
 }
@@ -23,12 +24,13 @@ const consultationSlice = createSlice({
       }
     },
     addMessage: (state, action) => {
-      if (state.activeConsultation) {
-        state.activeConsultation.messages = [
-          ...(state.activeConsultation.messages || []),
-          action.payload,
-        ]
-      }
+      // Single source of truth: every message (history load, own send, and
+      // incoming socket frames) lands in the top-level messages array so the
+      // consultation UI renders the other party's replies.
+      state.messages = [...(state.messages || []), action.payload]
+    },
+    setMessages: (state, action) => {
+      state.messages = action.payload || []
     },
     setHistory: (state, action) => {
       state.history = action.payload
@@ -45,6 +47,7 @@ const consultationSlice = createSlice({
     clearActiveConsultation: (state) => {
       state.activeConsultation = null
       state.status = 'idle'
+      state.messages = []
     },
   },
 })
@@ -53,6 +56,7 @@ export const {
   setActiveConsultation,
   updateConsultationStatus,
   addMessage,
+  setMessages,
   setHistory,
   addToHistory,
   setLoading,
