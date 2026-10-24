@@ -19,6 +19,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtHandshakeInterceptor jwtHandshakeInterceptor;
+    private final WebSocketSubscriptionInterceptor webSocketSubscriptionInterceptor;
 
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;
@@ -49,12 +50,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     /**
-     * Adds the JWT handshake interceptor to authenticate incoming STOMP connections.
+     * Adds the JWT handshake interceptor to authenticate incoming STOMP connections and
+     * the subscription interceptor to authorize every SUBSCRIBE against the principal.
      *
      * @param registration the ChannelRegistration to add interceptors to
      */
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(jwtHandshakeInterceptor);
+        registration.interceptors(jwtHandshakeInterceptor, webSocketSubscriptionInterceptor);
     }
 }
