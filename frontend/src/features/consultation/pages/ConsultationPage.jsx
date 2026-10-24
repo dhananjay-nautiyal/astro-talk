@@ -3,7 +3,7 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { getConsultationById, endConsultation } from '../../../api/consultationAPI'
 import { getChatHistory } from '../../../api/chatAPI'
-import { setActiveConsultation, updateConsultationStatus, addMessage } from '../store/consultationSlice'
+import { setActiveConsultation, updateConsultationStatus, addMessage, setMessages } from '../store/consultationSlice'
 import { useSocket } from '../../../context/SocketContext'
 import ChatWindow from '../components/ChatWindow'
 import VideoCallUI from '../components/VideoCallUI'
@@ -21,7 +21,9 @@ const ConsultationPage = () => {
   const dispatch = useDispatch()
   const { user } = useSelector((state) => state.auth)
   const { balance } = useSelector((state) => state.wallet)
-  const [messages, setMessages] = useState([])
+  // Messages live in the Redux store so both the history load and incoming
+  // socket frames (dispatched via addMessage) render in the same list.
+  const messages = useSelector((state) => state.consultation.messages)
   const [consultation, setConsultation] = useState(null)
   const [loading, setLoading] = useState(true)
   const [consultationType, setConsultationType] = useState(searchParams.get('type') || 'chat')
@@ -53,7 +55,7 @@ const ConsultationPage = () => {
         }
 
         const messagesRes = await getChatHistory(id)
-        setMessages(messagesRes.data || [])
+        dispatch(setMessages(messagesRes.data || []))
       } catch {
         toast.error('Failed to load consultation')
         navigate('/dashboard')
@@ -73,7 +75,6 @@ const ConsultationPage = () => {
     }
     sendMessage(`/app/consultation/${id}/chat`, message)
     dispatch(addMessage(message))
-    setMessages((prev) => [...prev, message])
   }, [id, user, sendMessage, dispatch])
 
   const handleTyping = useCallback(() => {
