@@ -3,6 +3,7 @@ package com.astrotalk.controller;
 import com.astrotalk.constant.WebResource;
 import com.astrotalk.entity.User;
 import com.astrotalk.exception.ResourceNotFoundException;
+import com.astrotalk.exception.UnauthorizedAccessException;
 import com.astrotalk.model.NotificationResponseModel;
 import com.astrotalk.repository.UserRepository;
 import com.astrotalk.service.NotificationService;
@@ -76,19 +77,34 @@ public class NotificationController {
      */
     @GetMapping(WebResource.ID_PATH)
     @Operation(summary = "Get notification by ID", description = "Returns a notification by its ID")
-    public ResponseEntity<NotificationResponseModel> getNotificationById(@PathVariable Long id) {
-        return ResponseEntity.ok(notificationService.getNotificationById(id));
+    public ResponseEntity<NotificationResponseModel> getNotificationById(
+            @PathVariable Long id,
+            Authentication authentication) {
+        User user = getCurrentUser(authentication);
+        NotificationResponseModel notification = notificationService.getNotificationById(id);
+        if (!user.getId().equals(notification.getUserId())) {
+            throw new UnauthorizedAccessException("You do not own this notification");
+        }
+        return ResponseEntity.ok(notification);
     }
 
     /**
      * PUT /notifications/{id}/read - Marks a single notification as read.
      *
      * @param id the notification ID
+     * @param authentication the current authenticated user
      * @return 200 OK
      */
     @PutMapping("/{id}/read")
     @Operation(summary = "Mark notification as read", description = "Marks a single notification as read")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long id) {
+    public ResponseEntity<Void> markAsRead(
+            @PathVariable Long id,
+            Authentication authentication) {
+        User user = getCurrentUser(authentication);
+        NotificationResponseModel notification = notificationService.getNotificationById(id);
+        if (!user.getId().equals(notification.getUserId())) {
+            throw new UnauthorizedAccessException("You do not own this notification");
+        }
         notificationService.markAsRead(id);
         return ResponseEntity.ok().build();
     }

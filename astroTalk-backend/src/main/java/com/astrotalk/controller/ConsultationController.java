@@ -64,7 +64,10 @@ public class ConsultationController {
      */
     @PostMapping(WebResource.END)
     @Operation(summary = "End a consultation", description = "Completes an active consultation and processes final billing")
-    public ResponseEntity<ConsultationResponseModel> endConsultation(@PathVariable Long id) {
+    public ResponseEntity<ConsultationResponseModel> endConsultation(
+            @PathVariable Long id,
+            Authentication authentication) {
+        consultationService.assertParticipant(id, authentication.getName());
         return ResponseEntity.ok(consultationService.endConsultation(id));
     }
 
@@ -109,7 +112,9 @@ public class ConsultationController {
     @Operation(summary = "Get consultation by ID", description = "Returns a consultation by its ID")
     public ResponseEntity<ConsultationResponseModel> getConsultationById(
             @Parameter(description = "Consultation ID", required = true, in = ParameterIn.PATH)
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            Authentication authentication) {
+        consultationService.assertParticipant(id, authentication.getName());
         return ResponseEntity.ok(consultationService.getConsultationById(id));
     }
 
