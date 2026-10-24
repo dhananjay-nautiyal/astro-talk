@@ -1,10 +1,8 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
-import { GoogleLogin } from '@react-oauth/google'
 import { loginStart, loginSuccess, loginFailure } from '../../store/authSlice'
 import { loginUser } from '../../api/authAPI'
-import axiosInstance from '../../api/axiosInstance'
 import { FiX, FiEye, FiEyeOff } from 'react-icons/fi'
 import { useLanguage } from '../../context/LanguageContext'
 import toast from 'react-hot-toast'
@@ -47,20 +45,6 @@ export default function LoginModal({ open, onClose }) {
     }
   }
 
-  const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      const { data } = await axiosInstance.post('/auth/google', {
-        idToken: credentialResponse.credential,
-      })
-      dispatch(loginSuccess(data))
-      toast.success(`Welcome, ${data.name}!`)
-      onClose()
-    } catch (err) {
-      const msg = err.response?.data?.message || t.auth?.googleFailed || 'Google Sign-In failed. Please try again.'
-      toast.error(msg)
-    }
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -99,23 +83,6 @@ export default function LoginModal({ open, onClose }) {
             {loading ? 'Signing in...' : (t.auth?.signIn || 'Sign In')}
           </button>
         </form>
-
-        <div className="relative my-5">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t" style={{ borderColor: 'rgba(201,168,76,0.15)' }} /></div>
-          <div className="relative flex justify-center"><span className="px-3 text-xs" style={{ background: 'var(--dark2)', color: 'var(--muted)' }}>{t.auth?.or || 'or'}</span></div>
-        </div>
-
-        <div className="flex justify-center">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => toast.error(t.auth?.googleFailed || 'Google Sign-In failed.')}
-            theme="filled_black"
-            shape="pill"
-            text="continuewith"
-            size="large"
-            width="300"
-          />
-        </div>
 
         <p className="text-center text-sm mt-5" style={{ color: 'var(--muted)' }}>
           {t.auth?.noAccount || "Don't have an account?"}{' '}
