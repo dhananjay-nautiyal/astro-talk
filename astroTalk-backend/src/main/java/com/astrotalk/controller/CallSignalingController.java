@@ -1,15 +1,11 @@
 package com.astrotalk.controller;
 
-import com.astrotalk.entity.Astrologer;
 import com.astrotalk.entity.Consultation;
 import com.astrotalk.entity.ConsultationStatus;
-import com.astrotalk.entity.User;
 import com.astrotalk.exception.UnauthorizedAccessException;
 import com.astrotalk.model.CallInviteModel;
 import com.astrotalk.model.SignalModel;
-import com.astrotalk.repository.AstrologerRepository;
 import com.astrotalk.repository.ConsultationRepository;
-import com.astrotalk.repository.UserRepository;
 import com.astrotalk.service.ConsultationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -35,8 +31,6 @@ public class CallSignalingController {
     private final SimpMessageSendingOperations messagingTemplate;
     private final ConsultationService consultationService;
     private final ConsultationRepository consultationRepository;
-    private final UserRepository userRepository;
-    private final AstrologerRepository astrologerRepository;
 
     /**
      * Handles /call.invite - Sends a call invitation to an astrologer for an active consultation.
@@ -49,7 +43,7 @@ public class CallSignalingController {
     public void invite(@Payload CallInviteModel invite, SimpMessageHeaderAccessor headerAccessor) {
         Principal principal = requirePrincipal(headerAccessor);
         Consultation consultation = loadActiveConsultation(invite.getConsultationId());
-        requireParticipant(consultation, principal);
+        requireParticipant(consultation.getId(), principal);
 
         Long astrologerId = consultation.getAstrologer().getId();
         messagingTemplate.convertAndSend("/topic/user/" + astrologerId + "/call", invite);
@@ -105,7 +99,7 @@ public class CallSignalingController {
     public void endCall(@Payload SignalModel signal, SimpMessageHeaderAccessor headerAccessor) {
         Principal principal = requirePrincipal(headerAccessor);
         Consultation consultation = loadActiveConsultation(signal.getConsultationId());
-        requireParticipant(consultation, principal);
+        requireParticipant(consultation.getId(), principal);
 
         consultationService.endConsultation(signal.getConsultationId());
         messagingTemplate.convertAndSend(
@@ -120,7 +114,7 @@ public class CallSignalingController {
     private void forwardIfParticipant(SignalModel signal, SimpMessageHeaderAccessor headerAccessor) {
         Principal principal = requirePrincipal(headerAccessor);
         Consultation consultation = loadConsultation(signal.getConsultationId());
-        requireParticipant(consultation, principal);
+        requireParticipant(consultation.getId(), principal);
 
         messagingTemplate.convertAndSend(
                 "/topic/consultation/" + signal.getConsultationId() + "/signal",
@@ -151,26 +145,18 @@ public class CallSignalingController {
     /**
      * Ensures the authenticated principal is the user or the astrologer of the consultation.
      * The WebSocket principal's name is the account email.
+     *
+     * Uses derived existence queries so the lazy user/astrologer associations are
+     * resolved in SQL - required because open-in-view is disabled and no Hibernate
+     * session is active in a STOMP handler.
      */
-    private void requireParticipant(Consultation consultation, Principal principal) {
+    private void requireParticipant(Long consultationId, Principal principal) {
         String email = principal.getName();
-        User user = consultation.getUser();
-        Astrologer astrologer = consultation.getAstrologer();
-
-        boolean isUser = user != null && email.equals(user.getEmail());
-        boolean isAstrologer = astrologer != null && email.equals(astrologer.getEmail());
-
-        if (!isUser && !isAstrologer) {
-            // Fall back to a lookup in case the entity associations were not populated.
-            boolean matchesAccount = userRepository.findByEmail(email)
-                    .map(u -> u.getId().equals(user != null ? user.getId() : null))
-                    .orElse(false)
-                    || astrologerRepository.findByEmail(email)
-                    .map(a -> a.getId().equals(astrologer != null ? astrologer.getId() : null))
-                    .orElse(false);
-            if (!matchesAccount) {
-                throw new UnauthorizedAccessException("You are not a participant of this consultation");
-            }
+        boolean isParticipant =
+                consultationRepository.existsByIdAndUser_Email(consultationId, email)
+                        || consultationRepository.existsByIdAndAstrologer_Email(consultationId, email);
+        if (!isParticipant) {
+            throw new UnauthorizedAccessException("You are not a participant of this consultation");
         }
     }
 }

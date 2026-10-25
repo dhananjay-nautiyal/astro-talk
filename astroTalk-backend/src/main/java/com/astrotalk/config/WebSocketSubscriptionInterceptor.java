@@ -1,7 +1,6 @@
 package com.astrotalk.config;
 
 import com.astrotalk.entity.Astrologer;
-import com.astrotalk.entity.Consultation;
 import com.astrotalk.entity.User;
 import com.astrotalk.repository.AstrologerRepository;
 import com.astrotalk.repository.ConsultationRepository;
@@ -122,15 +121,16 @@ public class WebSocketSubscriptionInterceptor implements ChannelInterceptor {
             throw new AccessDeniedException("Invalid consultation topic destination");
         }
 
-        Consultation consultation = consultationRepository.findById(consultationId)
-                .orElseThrow(() -> new AccessDeniedException("Consultation not found"));
+        // Derived existence queries resolve the lazy associations in SQL - required
+        // because open-in-view is disabled and no Hibernate session is active here.
+        if (!consultationRepository.existsById(consultationId)) {
+            throw new AccessDeniedException("Consultation not found");
+        }
+        boolean isParticipant =
+                consultationRepository.existsByIdAndUser_Email(consultationId, email)
+                        || consultationRepository.existsByIdAndAstrologer_Email(consultationId, email);
 
-        boolean isUser = consultation.getUser() != null
-                && email.equals(consultation.getUser().getEmail());
-        boolean isAstrologer = consultation.getAstrologer() != null
-                && email.equals(consultation.getAstrologer().getEmail());
-
-        if (!isUser && !isAstrologer) {
+        if (!isParticipant) {
             throw new AccessDeniedException("You are not a participant of this consultation");
         }
     }
