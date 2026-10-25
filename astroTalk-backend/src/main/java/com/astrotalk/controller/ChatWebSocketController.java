@@ -1,13 +1,14 @@
 package com.astrotalk.controller;
 
-import com.astrotalk.entity.Astrologer;
-import com.astrotalk.entity.Role;
+import com.astrotalk.entity.Consultation;
 import com.astrotalk.entity.SenderRole;
-import com.astrotalk.entity.User;
+import com.astrotalk.exception.ResourceNotFoundException;
+import com.astrotalk.exception.UnauthorizedAccessException;
 import com.astrotalk.model.MessageRequestModel;
 import com.astrotalk.model.MessageResponseModel;
 import com.astrotalk.model.TypingIndicatorModel;
 import com.astrotalk.repository.AstrologerRepository;
+import com.astrotalk.repository.ConsultationRepository;
 import com.astrotalk.repository.UserRepository;
 import com.astrotalk.service.ChatService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class ChatWebSocketController {
     private final SimpMessageSendingOperations messagingTemplate;
     private final UserRepository userRepository;
     private final AstrologerRepository astrologerRepository;
+    private final ConsultationRepository consultationRepository;
 
     /**
      * Handles /chat.send - Persists and broadcasts a chat message to the consultation topic.
@@ -43,19 +45,11 @@ public class ChatWebSocketController {
         Principal principal = headerAccessor.getUser();
         if (principal == null) return;
 
-        String email = principal.getName();
-        User user = userRepository.findByEmail(email).orElse(null);
+        Sender sender = resolveSender(principal.getName()).orElse(null);
+        if (sender == null) return;
 
-        if (user != null) {
-            handleSend(request, user.getId(), SenderRole.USER);
-            return;
-        }
-
-        Astrologer astrologer = astrologerRepository.findByEmail(email)
-                .orElse(null);
-        if (astrologer != null) {
-            handleSend(request, astrologer.getId(), SenderRole.ASTROLOGER);
-        }
+        requireParticipant(request.getConsultationId(), sender);
+        handleSend(request, sender.id(), sender.role());
     }
 
     private void handleSend(MessageRequestModel request, Long senderId, SenderRole senderRole) {
@@ -84,10 +78,11 @@ public class ChatWebSocketController {
         Principal principal = headerAccessor.getUser();
         if (principal == null) return;
 
-        SenderRole senderRole = resolveRole(principal.getName());
-        if (senderRole == null) return;
+        Sender sender = resolveSender(principal.getName()).orElse(null);
+        if (sender == null) return;
 
-        chatService.markAsRead(request.getConsultationId(), senderRole);
+        requireParticipant(request.getConsultationId(), sender);
+        chatService.markAsRead(request.getConsultationId(), sender.role());
 
         messagingTemplate.convertAndSend(
                 "/topic/consultation/" + request.getConsultationId() + "/read",
@@ -106,18 +101,12 @@ public class ChatWebSocketController {
         Principal principal = headerAccessor.getUser();
         if (principal == null) return;
 
-        String email = principal.getName();
-        User user = userRepository.findByEmail(email).orElse(null);
+        Sender sender = resolveSender(principal.getName()).orElse(null);
+        if (sender == null) return;
 
-        if (user != null) {
-            indicator.setSenderId(user.getId());
-            indicator.setSenderRole(SenderRole.USER);
-        } else {
-            Astrologer astrologer = astrologerRepository.findByEmail(email).orElse(null);
-            if (astrologer == null) return;
-            indicator.setSenderId(astrologer.getId());
-            indicator.setSenderRole(SenderRole.ASTROLOGER);
-        }
+        requireParticipant(indicator.getConsultationId(), sender);
+        indicator.setSenderId(sender.id());
+        indicator.setSenderRole(sender.role());
 
         messagingTemplate.convertAndSend(
                 "/topic/consultation/" + indicator.getConsultationId() + "/typing",
@@ -125,9 +114,41 @@ public class ChatWebSocketController {
         );
     }
 
-    private SenderRole resolveRole(String email) {
-        if (userRepository.findByEmail(email).isPresent()) return SenderRole.USER;
-        if (astrologerRepository.findByEmail(email).isPresent()) return SenderRole.ASTROLOGER;
-        return null;
+    /**
+     * The authenticated sender of a chat frame (account id + role resolved from the principal).
+     */
+    private record Sender(Long id, SenderRole role) {
+    }
+
+    /**
+     * Resolves the principal's account as either a user or an astrologer.
+     */
+    private java.util.Optional<Sender> resolveSender(String email) {
+        return userRepository.findByEmail(email)
+                .map(u -> new Sender(u.getId(), SenderRole.USER))
+                .or(() -> astrologerRepository.findByEmail(email)
+                        .map(a -> new Sender(a.getId(), SenderRole.ASTROLOGER)));
+    }
+
+    /**
+     * Verifies that the sender participates in the consultation before the frame is
+     * processed or broadcast (issue #53 - prevents message injection / read receipts /
+     * typing indicators in consultations the sender does not belong to).
+     *
+     * <p>Only the lazy proxies' identifiers are read (never a mapped attribute such as
+     * {@code email}), so no Hibernate session is required - identifiers are carried on
+     * the proxy itself and this stays safe with {@code open-in-view: false}.</p>
+     */
+    private void requireParticipant(Long consultationId, Sender sender) {
+        Consultation consultation = consultationRepository.findById(consultationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Consultation", consultationId));
+
+        Long participantId = sender.role() == SenderRole.USER
+                ? (consultation.getUser() != null ? consultation.getUser().getId() : null)
+                : (consultation.getAstrologer() != null ? consultation.getAstrologer().getId() : null);
+
+        if (!sender.id().equals(participantId)) {
+            throw new UnauthorizedAccessException("You are not a participant of this consultation");
+        }
     }
 }
