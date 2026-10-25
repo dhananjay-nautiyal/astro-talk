@@ -145,17 +145,16 @@ public class ConsultationServiceImpl implements ConsultationService {
         return toConsultationResponse(consultation);
     }
 
-    private Consultation loadConsultationForOwnership(Long id) {
-        return consultationRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Consultation", id));
-    }
-
     @Override
     public void assertParticipant(Long consultationId, String email) {
-        Consultation c = loadConsultationForOwnership(consultationId);
-        boolean isUser = c.getUser() != null && email.equals(c.getUser().getEmail());
-        boolean isAstrologer = c.getAstrologer() != null && email.equals(c.getAstrologer().getEmail());
-        if (!isUser && !isAstrologer) {
+        // Derived existence queries resolve the lazy associations in SQL, so this
+        // works with open-in-view disabled (no Hibernate session / no proxies).
+        if (!consultationRepository.existsById(consultationId)) {
+            throw new ResourceNotFoundException("Consultation", consultationId);
+        }
+        boolean isParticipant = consultationRepository.existsByIdAndUser_Email(consultationId, email)
+                || consultationRepository.existsByIdAndAstrologer_Email(consultationId, email);
+        if (!isParticipant) {
             throw new UnauthorizedAccessException("You are not a participant of this consultation");
         }
     }

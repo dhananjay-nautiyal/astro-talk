@@ -26,6 +26,15 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
 
     long countByStatus(ConsultationStatus status);
 
+    /**
+     * Existence checks that resolve the lazy user/astrologer associations in SQL.
+     * Safe to call outside a Hibernate session (open-in-view is disabled) because
+     * no entity proxies are initialized - used by the authorization checks.
+     */
+    boolean existsByIdAndUser_Email(Long id, String email);
+
+    boolean existsByIdAndAstrologer_Email(Long id, String email);
+
     long countByCreatedAtAfter(LocalDateTime dateTime);
 
     @Query("SELECT COALESCE(SUM(c.totalAmount), 0) FROM Consultation c WHERE c.status = 'COMPLETED'")
